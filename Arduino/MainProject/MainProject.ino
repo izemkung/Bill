@@ -5,5 +5,9 @@ void setup()
 }
 void loop() 
 {
-  ReciveBill();
+  while(Serial.available())
+  {    
+    bufferRx[indexRx++] = Serial.read();
+  }  
+  CalcRxData();
 }
