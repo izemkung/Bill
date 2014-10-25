@@ -51,7 +51,8 @@ void ReciveBill(void)
        Serial.print("recive");  
      if (mySerial.find(&buff))     
         mySerial.write(AcceptBill); 
-        Serial.println("AcceptBill");       
+     //   Serial.println("AcceptBill");    
+        
     }  
   } 
 }
