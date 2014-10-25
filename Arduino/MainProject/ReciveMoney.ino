@@ -33,6 +33,8 @@
 #define BillAcceptorEnableStatus      0x3E
 #define BillAcceptorInhibitStatus     0x5E
 
+#define Bill  Serial
+
 char powerUp[] = {PowerOn,Request02};
 char choice = '/0';
 
@@ -43,19 +45,39 @@ int indexRead = 0;
 char serialbuffer[1000];
 SoftwareSerial mySerial(10, 11);// RX, TX
 
+boolean flagBillAcceptor = false;
+ 
+
 
 void Init(void)
 {
   Serial.begin(9600,SERIAL_8E1); 
   mySerial.begin(9600);
-  Serial.println("hello");  
+  Serial.println("hello"); 
+  
+  delay(2000);
+  SendData(AcceptBill);
+  delay(1000);
+  SendData(BillAcceptorInhibitStatus); 
+  //delay(9000);
+  //SendData(BillAcceptorEnableStatus); 
 }
 
 void ReciveBill(void)
 { 
- 
+  if(flagBillAcceptor == false)return;
+  byte billType = 0xFF;
     
+  if(WaitCommand(&billType,200))
+   {
+    //imp
+    SendData(billType);
+   } 
    
+   //AcceptBill
+   if(billType != 0xFF)
+     SendData(AcceptBill);
+   flagBillAcceptor = false;
 }
 
 void SendData(byte data)
@@ -65,21 +87,29 @@ void SendData(byte data)
 
 void CalcRxData()
 {
+  
+  while(Serial.available())
+  {    
+    bufferRx[indexRx++] = Serial.read();
+  }  
+  
+  
   if(indexRx == indexRead)return;
   int numData = indexRx - indexRead;
-  byte data = bufferRx[indexRead];
+  byte data = bufferRx[indexRead++];
   
   switch(data){
           case Request02 : 
-              SendData(AcceptBill); break;
+              //SendData(AcceptBill); break;
           case CommunicationFailure : 
-              SendData(AcceptBill); break;
+              //SendData(AcceptBill); break;
               
           case BillOk : // imperment
-              ReciveBill(); break;
+              flagBillAcceptor = true ; break;
+  }
 }
 
-int8_t WaitCommand(byte expected_answer, unsigned int timeout)
+int8_t WaitCommand(byte *expected_answer, unsigned int timeout)
 {
 
     uint8_t x=0,  answer=0;
@@ -94,19 +124,16 @@ int8_t WaitCommand(byte expected_answer, unsigned int timeout)
     // this loop waits for the answer
     do{
         if(Serial.available() != 0){    
-           
-            expected_answer = Serial.read();
+            expected_answer[x] = Serial.read();
             x++;           
             answer = 1;
         }
-         // Waits for the asnwer with time out
     }while((answer == 0) && ((millis() - previous) < timeout));   
 
     return answer;
 }
 
-
-boolean ByteArrayCompare(byte a[],byte byte b[],int array_size)
+boolean ByteArrayCompare(byte a[],byte b[],int array_size)
 {
    for (int i = 0; i < array_size; ++i)
      if (a[i] != b[i])
