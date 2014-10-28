@@ -33,6 +33,10 @@
 #define BillAcceptorEnableStatus      0x3E
 #define BillAcceptorInhibitStatus     0x5E
 
+//===========Control ON OFF Bill======//
+#define ControllerEnableBillAcceptor  0x3E
+#define ControllerDisableBillAcc
+
 #define Bill  Serial
 
 char powerUp[] = {PowerOn,Request02};
@@ -139,4 +143,41 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
      if (a[i] != b[i])
        return(false);
    return(true);
+}
+
+void CheckStatus(byte data)
+{
+  SendData(RequestBillStatus);
+   switch(data){
+          case MotorFailure : 
+              //SendData(AcceptBill); break;
+          case CheckSumError : 
+              //SendData(AcceptBill); break;              
+          case BillJam : // imperment
+              //flagBillAcceptor = true ; break;
+          case BillRemove : 
+              //SendData(AcceptBill); break;
+          case StackerOpen : 
+              //SendData(AcceptBill); break;              
+          case SensorProblem : // imperment
+              //flagBillAcceptor = true ; break;
+          case CommunicationFailure : 
+              //SendData(AcceptBill); break;
+          case BillFish : 
+              //SendData(AcceptBill); break;              
+          case StackerProblem : // imperment
+              //flagBillAcceptor = true ; break;
+          case BillReject : 
+              //SendData(AcceptBill); break;
+          case InvalideCommand : 
+              //SendData(AcceptBill); break;              
+          case Revserved : // imperment
+              //flagBillAcceptor = true ; break;
+          case WhenErrorStatusisExclusion : 
+              //SendData(AcceptBill); break;
+          case BillAcceptorEnableStatus : 
+              //SendData(AcceptBill); break;              
+          case BillAcceptorInhibitStatus : // imperment
+              flagBillAcceptor = true ; break;
+  }
 }
