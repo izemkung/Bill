@@ -148,6 +148,8 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
 void CheckStatus(byte data)
 {
   SendData(RequestBillStatus);
+ // ส่ง คำร้องขอไป เเล้วเครื่องจะส่งข้อมูลกลับมา
+ // data คือข้อมูลที่ถูกส่งกลับมา เเล้วจะเอามาตรวจสอบได้ยังไง
    switch(data){
           case MotorFailure : 
               //SendData(AcceptBill); break;
