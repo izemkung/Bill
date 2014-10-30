@@ -37,7 +37,7 @@
 #define ControllerEnableBillAcceptor  0x3E
 #define ControllerDisableBillAcc
 
-#define Bill  Serial
+#define Bill  Serial1
 
 char powerUp[] = {PowerOn,Request02};
 char choice = '/0';
@@ -53,11 +53,11 @@ boolean flagBillAcceptor = false;
  
 
 
-void Init(void)
+void InitBillRecive(void)
 {
-  Serial.begin(9600,SERIAL_8E1); 
+  Bill.begin(9600,SERIAL_8E1); 
   mySerial.begin(9600);
-  Serial.println("hello"); 
+  Bill.println("hello"); 
   
   delay(2000);
   SendData(AcceptBill);
@@ -75,7 +75,13 @@ void ReciveBill(void)
   if(WaitCommand(&billType,200))
    {
     //imp
-    SendData(billType);
+    // if(billType == BillOk)
+    // {
+    //    CheckValueBill(billType);
+    // }
+   
+   }else{
+   //timeout
    } 
    
    //AcceptBill
@@ -86,15 +92,15 @@ void ReciveBill(void)
 
 void SendData(byte data)
 {
-  Serial.write((char)data);
+  Bill.write((char)data);
 }
 
 void CalcRxData()
 {
   
-  while(Serial.available())
+  while(Bill.available())
   {    
-    bufferRx[indexRx++] = Serial.read();
+    bufferRx[indexRx++] = Bill.read();
   }  
   
   
@@ -120,15 +126,15 @@ int8_t WaitCommand(byte *expected_answer, unsigned int timeout)
     char response[100];
     unsigned long previous;
     
-    while( Serial.available() > 0) Serial.read();  
+    while( Bill.available() > 0) Bill.read();  
      
     x = 0;
     previous = millis();
 
     // this loop waits for the answer
     do{
-        if(Serial.available() != 0){    
-            expected_answer[x] = Serial.read();
+        if(Bill.available() != 0){    
+            expected_answer[x] = Bill.read();
             x++;           
             answer = 1;
         }
@@ -145,41 +151,74 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
    return(true);
 }
 
-void CheckStatus(byte data)
+void CheckStatusReciveBill()
 {
   SendData(RequestBillStatus);
+<<<<<<< HEAD:Arduino/MainProject/ReciveBill.ino
+  byte Status = 0xFF;
+  if(WaitCommand(&Status,200))
+   {
+      switch(Status){
+=======
  // ส่ง คำร้องขอไป เเล้วเครื่องจะส่งข้อมูลกลับมา
  // data คือข้อมูลที่ถูกส่งกลับมา เเล้วจะเอามาตรวจสอบได้ยังไง
    switch(data){
+>>>>>>> ac0d0eabdfaac776631a7e8352a0f9a232b4f8d0:Arduino/MainProject/ReciveMoney.ino
           case MotorFailure : 
-              //SendData(AcceptBill); break;
+              //SendData(MotorFailure); break;
           case CheckSumError : 
-              //SendData(AcceptBill); break;              
-          case BillJam : // imperment
-              //flagBillAcceptor = true ; break;
+              //SendData(CheckSumError); break;              
+          case BillJam : 
+              //SendData(BillJam) ; break;
           case BillRemove : 
-              //SendData(AcceptBill); break;
+             // SendData(BillRemove); break;
           case StackerOpen : 
-              //SendData(AcceptBill); break;              
-          case SensorProblem : // imperment
-              //flagBillAcceptor = true ; break;
+              //SendData(StackerOpen); break;              
+          case SensorProblem : 
+              //SendData(SensorProblem) ; break;
           case CommunicationFailure : 
-              //SendData(AcceptBill); break;
+              //SendData(CommunicationFailure); break;
           case BillFish : 
-              //SendData(AcceptBill); break;              
-          case StackerProblem : // imperment
-              //flagBillAcceptor = true ; break;
+              //SendData(BillFish); break;              
+          case StackerProblem : 
+             //SendData(StackerProblem) ; break;
           case BillReject : 
-              //SendData(AcceptBill); break;
+             // SendData(BillReject); break;
           case InvalideCommand : 
-              //SendData(AcceptBill); break;              
-          case Revserved : // imperment
-              //flagBillAcceptor = true ; break;
+              //SendData(InvalideCommand); break;              
+          case Revserved : 
+               //SendData(Revserved) ; break;
           case WhenErrorStatusisExclusion : 
-              //SendData(AcceptBill); break;
+             // SendData(WhenErrorStatusisExclusion); break;
           case BillAcceptorEnableStatus : 
-              //SendData(AcceptBill); break;              
+             // SendData(BillAcceptorEnableStatus); break;              
           case BillAcceptorInhibitStatus : // imperment
               flagBillAcceptor = true ; break;
-  }
+      }
+   }else{
+   //timeout
+   } 
+   
+  
+}
+void CheckValueBill(byte data)
+{
+   if(WaitCommand(&data,200)){
+      switch(data){
+          case TwentyBath : 
+          //SendData(TwentyBath); break;
+          case FiftyBath : 
+          //SendData(FiftyBath); break;
+          case OnehundredBath : 
+          //SendData(OnehundredBath); break;
+          case FivehundredBath : 
+          //SendData(FivehundredBath); break;
+          case OnethousandBath : 
+          SendData(OnethousandBath); break;
+      }
+   }
+}
+void SendToRasberry()
+{
+  //packet to rasbrary pi
 }

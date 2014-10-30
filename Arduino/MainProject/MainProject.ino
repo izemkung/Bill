@@ -1,15 +1,18 @@
 
 void setup()
 {
-  Init();
-  
+  //InitBillRecive();
+  //InitBillPay();
+  InitCoinPay();
   
 }
 
 void loop() 
 {
   
-  CalcRxData();
-  ReciveBill();
+  //CalcRxData();
+ //ReciveBill();
+ //Paybill(1);
+ PayCoin(2);
   
 }
