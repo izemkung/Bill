@@ -2,9 +2,10 @@
 void setup()
 {
   //InitBillRecive();
-  //InitBillPay();
-  InitCoinPay();
-  
+  InitBillPay();
+  //InitCoinPay();
+  Serial.begin(9600);
+ // Serial.println("Hello");
 }
 
 void loop() 
@@ -12,7 +13,13 @@ void loop()
   
   //CalcRxData();
  //ReciveBill();
- //Paybill(1);
- PayCoin(2);
+
+ResetPayBill();
+delay(5000);
+ Paybill(5);
+  CheckStatusPayBill();
+ while(1);
+ //PayCoin(2);
+
   
 }

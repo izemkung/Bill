@@ -154,16 +154,15 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
 void CheckStatusReciveBill()
 {
   SendData(RequestBillStatus);
-<<<<<<< HEAD:Arduino/MainProject/ReciveBill.ino
+
   byte Status = 0xFF;
   if(WaitCommand(&Status,200))
    {
-      switch(Status){
-=======
+     
  // ส่ง คำร้องขอไป เเล้วเครื่องจะส่งข้อมูลกลับมา
  // data คือข้อมูลที่ถูกส่งกลับมา เเล้วจะเอามาตรวจสอบได้ยังไง
-   switch(data){
->>>>>>> ac0d0eabdfaac776631a7e8352a0f9a232b4f8d0:Arduino/MainProject/ReciveMoney.ino
+   switch(Status){
+
           case MotorFailure : 
               //SendData(MotorFailure); break;
           case CheckSumError : 

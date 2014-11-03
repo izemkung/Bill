@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 
 //=============CommandStatus[4]===============//
 #define PayBill           0x10
@@ -32,11 +32,11 @@
 #define Eight  0x08
 #define Nine   0x09
 
-#define PayBill Serial2
+#define payBill Serial3
 
 
 //====================Command===========================//
-byte CheckStatusPayBill[6] = {0x01,0x10,0x00,0x11,0x00,0x22};
+byte CheckPayBill[6] = {0x01,0x10,0x00,0x11,0x00,0x22};
 byte PayBillReset[6] =       {0x01,0x10,0x00,0x12,0x00,0x23};
 byte Datapay[6] =            {0x01,0x10,0x00,0x10,0x01,0x22};
 byte pay[6];
@@ -57,85 +57,149 @@ int indexReadBill = 0;
 
 void InitBillPay(void)
 {
-  PayBill.begin(9600,SERIAL_8E1); 
+  payBill.begin(9600,SERIAL_8E1); 
 }
-void SendDataBill(byte data[])
+void SendDataBill(byte *data,byte lengthb)
 {
-    for(int i=0; i<6;i++){
-     PayBill.write((char)data[i]);
+    for(int i=0; i<lengthb;i++){
+     payBill.write((char)data[i]); 
+	 
     }
+	//Serial.println("finish PAY");
 }
 
 void Paybill(int num) 
 {
+	Checksum = 0x00;
    for(int i =0;i<6;i++){
-     pay[i] = Datapay[i];     
+     pay[i] = Datapay[i];  
+	    
      if(i==4){
        pay[i]=num;
      }
-     if(i==5)
+	 if(i==5)
      {
        pay[i] = Checksum;
-     }
-     Checksum+=pay[i];
+     }	 
+     Checksum ^= pay[i];
    }
-   SendDataBill(pay);
+    //Serial.println("data PAY");
+    SendDataBill(pay,6);	
+    
+   
+    byte returnBill[10];
+    byte numPacketBill = WaitCommandBill(returnBill,6,5000);
+    byte error = 0xFF;
+    if (numPacketBill > 5)
+    {
+		for(int i=0; i<6;i++){
+			//payBill.write((char)data[i]);
+			 Serial.write((char)returnBill[i]);			
+		}
+	
+	}else{
+	   //ตอบกลับไม่มีการตอบสนอง
+	    Serial.println("Paybill Time Out");
+    }
+	
+   
 }
-byte CheckMachineStatus()
+void CheckStatusPayBill()
 {
-  SendDataBill(CheckStatusPayBill);
-  for(int i =0;i<6;i++){
-    error[i] = bufferRxBill[i];
+  SendDataBill(CheckPayBill,6);
+  byte returnBill[10];
+  byte numPacketBill = WaitCommandBill(returnBill,6,5000);
+  byte error1 = 0xFF;
+  if (numPacketBill > 5)
+  {
+	  for(int i=0; i<6;i++){
+		  //payBill.write((char)data[i]);
+		  Serial.write((char)returnBill[i]);		  
+	  }
+	  error1 = returnBill[3];
+	  CheckStatus(error1);
+	  }else{
+	  //ตอบกลับไม่มีการตอบสนอง
+	   Serial.println("CheckStatusPayBill Time Out ");
   }
-  return error[3];
 }
+int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
+{
 
+	uint8_t lengthb=0,  answer=0;
+	char response[100];
+	unsigned long previous;
+	
+	while( payBill.available() > 0) payBill.read();
+	
+	lengthb = 0;
+	previous = millis();
+
+	// this loop waits for the answer
+	do{
+		 if(payBill.available() != 0){  
+			expected_answer[lengthb] = payBill.read();
+			lengthb++;
+		 }
+	}while((l!=lengthb) && ((millis() - previous) < timeout));
+
+	return lengthb;
+}
 void CalcRxBill()
 {
   
-  while(PayBill.available())
+  while(payBill.available())
   {    
-    bufferRxBill[indexRxBill++] = PayBill.read();
+    bufferRxBill[indexRxBill++] = payBill.read();
   }  
   
   if(indexRxBill == indexReadBill)return;
   int numDataBill = indexRxBill - indexReadBill;
   //byte dataBill = bufferRxBill[indexReadBill++];
+  for(int i=0; i< numDataBill;i++)
+  {
+	  serialBillbuffer[i] = bufferRxBill[i];
+  }
+ 
+}
+void ResetPayBill()
+{
+	SendDataBill(PayBillReset,6);
 }
 void CheckStatus(byte data)
 {
   switch(data)
   {
     case PayOutSuccessful :
-    //sendError;break;
+    Serial.println("PayOutSuccessful");break;
     case PayOutFail :
-     //sendError;break;
+      Serial.println("PayOutFail");break;
     case StatusFine : //ready paybill
-     //sendError;break;
+     Serial.println("StatusFine");break;
     case EmptyNote :
-     //sendError;break;
+      Serial.println("EmptyNote");break;
     case StockLess :
-    //senderror
+     Serial.println("StockLess");break;
     case NoteJam : 
-    //senderror
+     Serial.println("NoteJam");break;
     case OverLength :
-    //senderror
+    Serial.println("OverLength");break;
     case NoteNotExit :
-    //senderror
+    Serial.println("NoteNotExit");break;
     case SensorError :
-   //senderror
+    Serial.println("SensorError");break;
     case DoubleNoteError :
-    //senderror
+     Serial.println("DoubleNoteError");break;
     case MotorError :
-    //senderror
+     Serial.println("MotorError");break;
     case DispensingBusy :
-    //senderror
+     Serial.println("DispensingBusy");break;
     case SensorAdjusting :
-    //senderror
+     Serial.println("SensorAdjusting");break;
     case CheckSumError : 
-    //senderror
+     Serial.println("CheckSumError");break;
     case LowPowerError :
-    break;
+     Serial.println("LowPowerError");break;
   }
 }
 
