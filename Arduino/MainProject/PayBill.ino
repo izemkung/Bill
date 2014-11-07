@@ -44,7 +44,7 @@ byte error[6];
 
 
 int array_size = 6;
-byte Checksum = 0x00;
+byte Checksum ;
 byte count1 = 0x00;
 byte count2 = 0x00;
 
@@ -62,31 +62,23 @@ void InitBillPay(void)
 void SendDataBill(byte *data,byte lengthb)
 {
     for(int i=0; i<lengthb;i++){
-     payBill.write((char)data[i]); 
-	 
+     payBill.write((char)data[i]);
+	 Serial.write((char)data[i]);	 
     }
-	//Serial.println("finish PAY");
 }
 
 void Paybill(int num) 
 {
 	Checksum = 0x00;
    for(int i =0;i<6;i++){
-     pay[i] = Datapay[i];  
-	    
-     if(i==4){
-       pay[i]=num;
-     }
-	 if(i==5)
-     {
-       pay[i] = Checksum;
-     }	 
+     pay[i] = Datapay[i];	    
+     if(i==4)
+       pay[i]=num;     
+	 if(i==5)     
+       pay[i] = Checksum; 
      Checksum ^= pay[i];
    }
-    //Serial.println("data PAY");
-    SendDataBill(pay,6);	
-    
-   
+    SendDataBill(pay,6);   
     byte returnBill[10];
     byte numPacketBill = WaitCommandBill(returnBill,6,5000);
     byte error = 0xFF;
@@ -95,11 +87,11 @@ void Paybill(int num)
 		for(int i=0; i<6;i++){
 			//payBill.write((char)data[i]);
 			 Serial.write((char)returnBill[i]);			
-		}
-	
+		}	
 	}else{
 	   //ตอบกลับไม่มีการตอบสนอง
 	    Serial.println("Paybill Time Out");
+		//CheckStatusPayBill();
     }
 	
    
@@ -118,7 +110,7 @@ void CheckStatusPayBill()
 	  }
 	  error1 = returnBill[3];
 	  CheckStatus(error1);
-	  }else{
+  }else{
 	  //ตอบกลับไม่มีการตอบสนอง
 	   Serial.println("CheckStatusPayBill Time Out ");
   }
@@ -144,23 +136,6 @@ int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
 	}while((l!=lengthb) && ((millis() - previous) < timeout));
 
 	return lengthb;
-}
-void CalcRxBill()
-{
-  
-  while(payBill.available())
-  {    
-    bufferRxBill[indexRxBill++] = payBill.read();
-  }  
-  
-  if(indexRxBill == indexReadBill)return;
-  int numDataBill = indexRxBill - indexReadBill;
-  //byte dataBill = bufferRxBill[indexReadBill++];
-  for(int i=0; i< numDataBill;i++)
-  {
-	  serialBillbuffer[i] = bufferRxBill[i];
-  }
- 
 }
 void ResetPayBill()
 {

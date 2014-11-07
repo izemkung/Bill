@@ -47,7 +47,7 @@ int indexRx = 0;
 int indexRead = 0;
 
 char serialbuffer[1000];
-SoftwareSerial mySerial(10, 11);// RX, TX
+//SoftwareSerial mySerial(10, 11);// RX, TX
 
 boolean flagBillAcceptor = false;
  
@@ -56,13 +56,13 @@ boolean flagBillAcceptor = false;
 void InitBillRecive(void)
 {
   Bill.begin(9600,SERIAL_8E1); 
-  mySerial.begin(9600);
-  Bill.println("hello"); 
+  //mySerial.begin(9600);
+  //Bill.println("hello"); 
   
   delay(2000);
   SendData(AcceptBill);
   delay(1000);
-  SendData(BillAcceptorInhibitStatus); 
+ // SendData(BillAcceptorInhibitStatus); 
   //delay(9000);
   //SendData(BillAcceptorEnableStatus); 
 }
@@ -70,23 +70,27 @@ void InitBillRecive(void)
 void ReciveBill(void)
 { 
   if(flagBillAcceptor == false)return;
-  byte billType = 0xFF;
-    
-  if(WaitCommand(&billType,200))
+  byte billType = 0xFF;    
+  if(WaitCommand(&billType,5000))
    {
     //imp
-    // if(billType == BillOk)
-    // {
-    //    CheckValueBill(billType);
-    // }
+     if(billType == BillOk)
+    {
+       // CheckValueBill(billType);
+    }
    
    }else{
    //timeout
+   Serial.println("ReciveBill time Out");
    } 
    
    //AcceptBill
    if(billType != 0xFF)
+   {
+	CheckValueBill(billType);
      SendData(AcceptBill);
+   
+   }
    flagBillAcceptor = false;
 }
 
@@ -96,13 +100,11 @@ void SendData(byte data)
 }
 
 void CalcRxData()
-{
-  
+{  
   while(Bill.available())
   {    
     bufferRx[indexRx++] = Bill.read();
-  }  
-  
+  } 
   
   if(indexRx == indexRead)return;
   int numData = indexRx - indexRead;
@@ -110,12 +112,13 @@ void CalcRxData()
   
   switch(data){
           case Request02 : 
-              //SendData(AcceptBill); break;
-          case CommunicationFailure : 
+              SendData(AcceptBill) ;break;
+          //case CommunicationFailure : 
               //SendData(AcceptBill); break;
               
           case BillOk : // imperment
-              flagBillAcceptor = true ; break;
+              flagBillAcceptor = true ;break;
+			  
   }
 }
 
@@ -158,39 +161,64 @@ void CheckStatusReciveBill()
   byte Status = 0xFF;
   if(WaitCommand(&Status,200))
    {
-     
- // ส่ง คำร้องขอไป เเล้วเครื่องจะส่งข้อมูลกลับมา
- // data คือข้อมูลที่ถูกส่งกลับมา เเล้วจะเอามาตรวจสอบได้ยังไง
    switch(Status){
 
           case MotorFailure : 
-              //SendData(MotorFailure); break;
+              //SendData(MotorFailure); 
+			  Serial.println("MotorFailure  ");
+			  break;
           case CheckSumError : 
-              //SendData(CheckSumError); break;              
+              //SendData(CheckSumError); break; 
+			   Serial.println("CheckSumError  ");
+			   break;             
           case BillJam : 
               //SendData(BillJam) ; break;
+			   Serial.println("BillJam  ");
+			   break;
           case BillRemove : 
              // SendData(BillRemove); break;
+			  Serial.println("BillRemove  ");
+			  break;
           case StackerOpen : 
-              //SendData(StackerOpen); break;              
+              //SendData(StackerOpen); break;    
+			   Serial.println("StackerOpen  ");
+			   break;          
           case SensorProblem : 
               //SendData(SensorProblem) ; break;
+			   Serial.println("SensorProblem  ");
+			   break;
           case CommunicationFailure : 
               //SendData(CommunicationFailure); break;
+			   Serial.println("CommunicationFailure  ");
+			   break;
           case BillFish : 
-              //SendData(BillFish); break;              
+              //SendData(BillFish); break;    
+			   Serial.println("BillFish  ");
+			   break;          
           case StackerProblem : 
              //SendData(StackerProblem) ; break;
+			  Serial.println("StackerProblem  ");
+			  break;
           case BillReject : 
              // SendData(BillReject); break;
+			  Serial.println("BillReject  ");
+			  break;
           case InvalideCommand : 
-              //SendData(InvalideCommand); break;              
+              //SendData(InvalideCommand); break; 
+			   Serial.println("InvalideCommand  ");
+			   break;             
           case Revserved : 
                //SendData(Revserved) ; break;
+			    Serial.println("Revserved  ");
+			    break;
           case WhenErrorStatusisExclusion : 
              // SendData(WhenErrorStatusisExclusion); break;
+			  Serial.println("WhenErrorStatusisExclusion  ");
+			  break;
           case BillAcceptorEnableStatus : 
-             // SendData(BillAcceptorEnableStatus); break;              
+             // SendData(BillAcceptorEnableStatus); break;    
+			  Serial.println("BillAcceptorEnableStatus  ");
+			  break;          
           case BillAcceptorInhibitStatus : // imperment
               flagBillAcceptor = true ; break;
       }
@@ -202,20 +230,23 @@ void CheckStatusReciveBill()
 }
 void CheckValueBill(byte data)
 {
-   if(WaitCommand(&data,200)){
-      switch(data){
-          case TwentyBath : 
-          //SendData(TwentyBath); break;
-          case FiftyBath : 
-          //SendData(FiftyBath); break;
-          case OnehundredBath : 
-          //SendData(OnehundredBath); break;
-          case FivehundredBath : 
-          //SendData(FivehundredBath); break;
-          case OnethousandBath : 
-          SendData(OnethousandBath); break;
-      }
-   }
+    switch(data){
+        case TwentyBath : 
+        //SendData(TwentyBath); break;
+		Serial.println("TwentyBath  "); break;
+        case FiftyBath : 
+        //SendData(FiftyBath); break;
+		Serial.println("FiftyBath  "); break;
+        case OnehundredBath : 
+        //SendData(OnehundredBath); break;
+		Serial.println("OnehundredBath  "); break;
+        case FivehundredBath : 
+        //SendData(FivehundredBath); break;
+		Serial.println("FivehundredBath  ");break;
+        case OnethousandBath : 
+        // SendData(OnethousandBath); break;
+		Serial.println("OnethousandBath  ");break;
+    }
 }
 void SendToRasberry()
 {

@@ -2,26 +2,38 @@
 void setup()
 {
   //InitBillRecive();
- // InitBillPay();
-  InitCoinPay();
+  //InitBillPay();
+ InitCoinPay();
   Serial.begin(9600);
- // Serial.println("Hello");
 }
 
 void loop() 
 {
   
-  //CalcRxData();
+ //CalcRxData();
  //ReciveBill();
 
-//ResetPayBill();
-//delay(5000);
-// Paybill(5);
+//  ResetPayBill();
+//  delay(2000);
 //  CheckStatusPayBill();
-
- PayCoin(1);
- delay(1000);
- PayCoin(1);
- while(1);
+//  delay(5000);
+//  Paybill(2);
+//   delay(5000);
+//  CheckStatusPayBill();
+//  while(1);
+// ResetPayCoin();
+// delay(5000);
+//CheckStatusCoin();
+//delay(5000);
+//  PayCoin(1);
+//  delay(2000);
+//  PayCoin(1);
+//   delay(2000);
+//   PayCoin(1);
+//    delay(2000);
+//    PayCoin(5);
+//     delay(2000);
+    PayCoin(5);
+  while(1);
   
 }
