@@ -59,7 +59,7 @@ void InitBillPay(void)
 {
   payBill.begin(9600,SERIAL_8E1); 
 }
-void SendDataBill(byte *data,byte lengthb)
+void SendDataPayBill(byte *data,byte lengthb)
 {
     for(int i=0; i<lengthb;i++){
      payBill.write((char)data[i]);
@@ -78,7 +78,7 @@ void Paybill(int num)
        pay[i] = Checksum; 
      Checksum ^= pay[i];
    }
-    SendDataBill(pay,6);   
+    SendDataPayBill(pay,6);   
     byte returnBill[10];
     byte numPacketBill = WaitCommandBill(returnBill,6,5000);
     byte error = 0xFF;
@@ -98,7 +98,7 @@ void Paybill(int num)
 }
 void CheckStatusPayBill()
 {
-  SendDataBill(CheckPayBill,6);
+  SendDataPayBill(CheckPayBill,6);
   byte returnBill[10];
   byte numPacketBill = WaitCommandBill(returnBill,6,5000);
   byte error1 = 0xFF;
@@ -139,7 +139,7 @@ int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
 }
 void ResetPayBill()
 {
-	SendDataBill(PayBillReset,6);
+	SendDataPayBill(PayBillReset,6);
 }
 void CheckStatus(byte data)
 {
