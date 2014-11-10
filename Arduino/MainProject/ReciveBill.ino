@@ -35,7 +35,7 @@
 
 //===========Control ON OFF Bill======//
 #define ControllerEnableBillAcceptor  0x3E
-#define ControllerDisableBillAcc
+#define ControllerDisableBillAcc	  0x5E
 
 #define Bill  Serial1
 
@@ -55,16 +55,10 @@ boolean flagBillAcceptor = false;
 
 void InitBillRecive(void)
 {
-  Bill.begin(9600,SERIAL_8E1); 
-  //mySerial.begin(9600);
-  //Bill.println("hello"); 
-  
+  Bill.begin(9600,SERIAL_8E1);  
   delay(2000);
-  SendData(AcceptBill);
-  delay(1000);
- // SendData(BillAcceptorInhibitStatus); 
-  //delay(9000);
-  //SendData(BillAcceptorEnableStatus); 
+  //SendData(AcceptBill);
+  //delay(1000);
 }
 
 void ReciveBill(void)
@@ -76,7 +70,7 @@ void ReciveBill(void)
     //imp
      if(billType == BillOk)
     {
-       // CheckValueBill(billType);
+        CheckValueBill(billType);
     }
    
    }else{
@@ -247,6 +241,14 @@ void CheckValueBill(byte data)
         // SendData(OnethousandBath); break;
 		Serial.println("OnethousandBath  ");break;
     }
+}
+void OpenReciveBill()
+{
+	SendData(ControllerEnableBillAcceptor);
+}
+void DisnableReciveBill()
+{
+	SendData(ControllerDisableBillAcc);
 }
 void SendToRasberry()
 {

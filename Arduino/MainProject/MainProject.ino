@@ -1,4 +1,4 @@
-
+byte da ;
 void setup()
 {
   //InitBillRecive();
@@ -12,6 +12,7 @@ void loop()
   
  //CalcRxData();
  //ReciveBill();
+
 
 //  ResetPayBill();
 //  delay(2000);
@@ -33,7 +34,10 @@ void loop()
 //    delay(2000);
 //    PayCoin(5);
 //     delay(2000);
-    PayCoin(5);
-  while(1);
+
+	PayCoin(1);
+	delay(1000);
+   
+  //while(1);
   
 }

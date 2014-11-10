@@ -155,7 +155,7 @@ void CheckStatusCoin()
 // 		}
 	}else{
 		//ตอบกลับไม่มีการตอบสนอง
-		//Serial.println("CheckStatusCoin timeout");
+		//Serial.println("CheckStatusCoin timeout"); 
 	}
 	//send to rasberrry pi
 }
