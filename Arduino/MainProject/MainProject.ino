@@ -3,12 +3,11 @@
 #define PAYBILLMACHINE 02
 #define PAYCOINMACHINE 03
 //===============ERROR OF MACHINE===========//
-#define NOERROR		01
-#define TIMEOUT		02
+#define NOERROR		0xFE
+#define TIMEOUT		0xFD
 
 
 byte SenddataToRasberry[7] = {0xFF,0xFF,0x04,0x00,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
-byte ReadFromRasberry[7];
 byte NumMachine;
 byte Function;
 
@@ -19,7 +18,7 @@ byte Function;
 #define PRO_START1			_indexStartReader+1
 #define PRO_LENGTH			_indexStartReader+2
 #define PRO_ID                          _indexStartReader+3
-#define PRO_ERROR                       _indexStartReader+4
+#define PRO_FUNCTION                    _indexStartReader+4
 #define PRO_VALUE                       _indexStartReader+5
 #define PRO_CHECKSUM		        _indexStartReader+2+rxBuffer[PRO_LENGTH]
 
@@ -39,10 +38,15 @@ byte _id;
 byte _checksum;
 //========================================
 
-unsigned long previousMillis = 0;        
-const long interval = 2000; //=================loop time want check status=============================//
-boolean flagCheckStatus = false;
+//=================Get status ==================== 
+unsigned long previousMillisReciveBill = 0;  
+unsigned long previousMillisPayBill = 0; 
+unsigned long previousMillisPayCoin = 0; 
 
+const long interval = 180000;// time want check status 180 sec
+boolean flagCheckStatus = false;
+#define RESETTIMECHECKSTATUS previousMillisReciveBill = previousMillisPayBill=  previousMillisPayCoin  = millis()
+//=================================================
 
 void setup()
 {
@@ -59,19 +63,50 @@ void loop()
   LoopCheckStatus();//Check status   
 }
 
+
+#define P_RECIVEBILL  1
+
+#define F_RECIVEBILL  1
+#define F_CHECKSTATUS 2
+
+#define P_PAYBILL     2
+#define F_PAYBILL     1
+
+#define P_PATCOIN     3
 void CalcCommandFromRaspberryPi()
 {
+  
+  RESETTIMECHECKSTATUS;
+  
   byte _id = rxBuffer[PRO_ID];
-  byte _function = rxBuffer[PRO_ID]; 
-  byte _value = rxBuffer[PRO_ID];
+  byte _function = rxBuffer[PRO_FUNCTION]; 
+  byte _value = rxBuffer[PRO_VALUE];
   
   switch(_id)
   {
-      case 1:
+      case P_RECIVEBILL:
+              switch(_function)
+              {
+                case F_RECIVEBILL: ReciveBill();break;
+                case F_CHECKSTATUS: CheckStatusReciveBill();break;
+              }
+           break;
+           
+      case P_PAYBILL:
+              switch(_function)
+              {
+                case F_RECIVEBILL: Paybill(_value);break;
+                case F_CHECKSTATUS: CheckStatusPayBill();break;
+              }
+           break;
       
-                break;
-      case 2:break; 
-      case 3:break; 
+      case P_PATCOIN:
+              switch(_function)
+              {
+                case P_PATCOIN: PayCoin(_value);break;
+                case F_CHECKSTATUS: CheckStatusCoin();break;
+              }
+      break; 
   }
   
 }
@@ -87,6 +122,7 @@ void serialEvent() {
   }
 }
 
+//Calc buffer income data
 void Rx_Calc()
 {
     if(rxReadPointer != rxWritePointer)
@@ -128,33 +164,7 @@ void Rx_Calc()
 		if(checkSum(PRO_LENGTH,PRO_CHECKSUM)== _UDR)
 		{
 			//Serial.println("check sum ok!");
-		        //CalcParameter();
                         CalcCommandFromRaspberryPi();
-
-
-                        byte _id = rxBuffer[PRO_ID] -1;
-                        if(_id >= 0 && _id <= LEDNUM)
-                        {
-			  previousMillis[_id] = 0;
-                          LedBuffer[_id][A_R] = rxBuffer[PRO_R];
-                          LedBuffer[_id][A_G] = rxBuffer[PRO_G];
-                          LedBuffer[_id][A_B] = rxBuffer[PRO_B];
-                          LedBuffer[_id][A_MODE] = rxBuffer[PRO_MODE];
-                          LedBuffer[_id][A_TIME] = rxBuffer[PRO_TIME];
-                          LedBuffer[_id][A_TIME2] = rxBuffer[PRO_TIME2];
-                        }else if(_id == 253)//id - 1
-                        {
-                          for(int i = 0;i<=LEDNUM+1;i++)
-                          {
-                            previousMillis[i] = 0;
-                            LedBuffer[i][A_R] = rxBuffer[PRO_R];
-                            LedBuffer[i][A_G] = rxBuffer[PRO_G];
-                            LedBuffer[i][A_B] = rxBuffer[PRO_B];
-                            LedBuffer[i][A_MODE] = rxBuffer[PRO_MODE];
-                            LedBuffer[i][A_TIME] = rxBuffer[PRO_TIME];
-                            LedBuffer[i][A_TIME2] = rxBuffer[PRO_TIME2];
-                          }
-                        }
 
 		}else
 		{
@@ -189,15 +199,28 @@ void SendToRasberry(byte *data,byte lengthR)
 	}	
 }
 
+
+
 void LoopCheckStatus()
 {
-	 if(flagCheckStatus==true)return; //Ennable Disable function
 	 unsigned long currentMillis = millis();	 
-	 if(currentMillis - previousMillis >= interval) {
-		 // save the last time you blinked the LED
-		 previousMillis = currentMillis;
-		 // ============================make check status====================================
-		 
+	 if(currentMillis - previousMillisReciveBill >= interval) {
+		 previousMillisReciveBill = currentMillis;
+		 // ===========make check status ReciveBill ==================== 
 	 }
+
+         if(currentMillis - previousMillisPayBill >= interval + 2000) {
+		 previousMillisPayBill = currentMillis;
+		 // ===========make check status PayBill ==================== 
+
+	 }
+
+         if(currentMillis - previousMillisPayCoin >= interval + 4000) {
+		 previousMillisPayCoin = currentMillis;
+		 // ===========make check status PayCoin ==================== 
+
+	 }
+
+
 }
 

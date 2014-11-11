@@ -77,14 +77,15 @@ void ReciveBill(void)
 { 
 	
   if(flagBillAcceptor == false)return;
+  
   EnableReciveBill();//================================== enable machin recive bill===========================//
   byte billType = 0xFF;    
-  if(WaitCommand(&billType,5000)) //==================== wait 20sec for frecive bill=====================//
+  if(WaitCommand(&billType,20000)) //==================== wait 20sec for frecive bill=====================//
    {
     //imp
      if(billType == BillOk)
     {
-       CheckValueBill(billType);
+           CheckValueBill(billType);
 	   CheckStatusReciveBill();	  
     }   
    }else{
@@ -203,7 +204,8 @@ void CheckStatusReciveBill()
 }
 void CheckValueBill(byte data)
 {
-    switch(data){
+    switch(data)
+    {
         case TwentyBath :		ValueBill = TwentyBath ; break;
         case FiftyBath :		ValueBill = FiftyBath ; break;
         case OnehundredBath :	ValueBill = OnehundredBath ; break;
