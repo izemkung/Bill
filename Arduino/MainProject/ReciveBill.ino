@@ -1,4 +1,8 @@
 #include <SoftwareSerial.h>
+//===============NUMBER OF MACHINE===========//
+#define RECIVEMACHINE  01
+#define PAYBILLMACHINE 02
+#define PAYCOINMACHINE 03
 //===========Control Status==========//
 #define AcceptBill       0x02
 #define RejectBill       0x0F
@@ -37,7 +41,15 @@
 #define ControllerEnableBillAcceptor  0x3E
 #define ControllerDisableBillAcc	  0x5E
 
+//===============ERROR OF MACHINE===========//
+#define NOERROR		0xFE
+#define TIMEOUT		0xFD
 #define Bill  Serial1
+
+byte DataToRasberry01[7] = {0xFF,0xFF,0x04,0x01,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
+byte CheckSumToRasberry01 ;
+byte ErrorMachineRecive;
+byte ValueBill ; 
 
 char powerUp[] = {PowerOn,Request02};
 char choice = '/0';
@@ -47,8 +59,6 @@ int indexRx = 0;
 int indexRead = 0;
 
 char serialbuffer[1000];
-//SoftwareSerial mySerial(10, 11);// RX, TX
-
 boolean flagBillAcceptor = false;
  
 
@@ -57,42 +67,53 @@ void InitBillRecive(void)
 {
   Bill.begin(9600,SERIAL_8E1);  
   delay(2000);
-  //SendData(AcceptBill);
-  //delay(1000);
+   SendDataToMachine(AcceptBill);
+   delay(1000);
+   SendDataToMachine(ControllerDisableBillAcc);
+   delay(1000);
 }
 
 void ReciveBill(void)
 { 
+	
   if(flagBillAcceptor == false)return;
+  EnableReciveBill();//================================== enable machin recive bill===========================//
   byte billType = 0xFF;    
-  if(WaitCommand(&billType,5000))
+  if(WaitCommand(&billType,5000)) //==================== wait 20sec for frecive bill=====================//
    {
     //imp
      if(billType == BillOk)
     {
-        CheckValueBill(billType);
-    }
-   
+       CheckValueBill(billType);
+	   CheckStatusReciveBill();	  
+    }   
    }else{
    //timeout
-   Serial.println("ReciveBill time Out");
+	PacketToRasberryReciveBill(TIMEOUT,7);
+	DisnableReciveBill();
    } 
    
    //AcceptBill
    if(billType != 0xFF)
    {
 	CheckValueBill(billType);
-     SendData(AcceptBill);
-   
+    SendDataToMachine(AcceptBill);   
    }
    flagBillAcceptor = false;
+   
 }
 
-void SendData(byte data)
+void SendDataToMachine(byte data)
 {
   Bill.write((char)data);
 }
-
+void SendDataToRassberry(byte *data,byte lengthR)
+{
+	for (int i=0;i<lengthR;i++)
+	{
+		Serial.write((char)data[i]);
+	}
+}
 void CalcRxData()
 {  
   while(Bill.available())
@@ -106,7 +127,7 @@ void CalcRxData()
   
   switch(data){
           case Request02 : 
-              SendData(AcceptBill) ;break;
+              SendDataToMachine(AcceptBill) ;break;
           //case CommunicationFailure : 
               //SendData(AcceptBill); break;
               
@@ -150,107 +171,70 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
 
 void CheckStatusReciveBill()
 {
-  SendData(RequestBillStatus);
-
+  SendDataToMachine(RequestBillStatus);
   byte Status = 0xFF;
-  if(WaitCommand(&Status,200))
+  if(WaitCommand(&Status,1000))
    {
-   switch(Status){
-
-          case MotorFailure : 
-              //SendData(MotorFailure); 
-			  Serial.println("MotorFailure  ");
-			  break;
-          case CheckSumError : 
-              //SendData(CheckSumError); break; 
-			   Serial.println("CheckSumError  ");
-			   break;             
-          case BillJam : 
-              //SendData(BillJam) ; break;
-			   Serial.println("BillJam  ");
-			   break;
-          case BillRemove : 
-             // SendData(BillRemove); break;
-			  Serial.println("BillRemove  ");
-			  break;
-          case StackerOpen : 
-              //SendData(StackerOpen); break;    
-			   Serial.println("StackerOpen  ");
-			   break;          
-          case SensorProblem : 
-              //SendData(SensorProblem) ; break;
-			   Serial.println("SensorProblem  ");
-			   break;
-          case CommunicationFailure : 
-              //SendData(CommunicationFailure); break;
-			   Serial.println("CommunicationFailure  ");
-			   break;
-          case BillFish : 
-              //SendData(BillFish); break;    
-			   Serial.println("BillFish  ");
-			   break;          
-          case StackerProblem : 
-             //SendData(StackerProblem) ; break;
-			  Serial.println("StackerProblem  ");
-			  break;
-          case BillReject : 
-             // SendData(BillReject); break;
-			  Serial.println("BillReject  ");
-			  break;
-          case InvalideCommand : 
-              //SendData(InvalideCommand); break; 
-			   Serial.println("InvalideCommand  ");
-			   break;             
-          case Revserved : 
-               //SendData(Revserved) ; break;
-			    Serial.println("Revserved  ");
-			    break;
-          case WhenErrorStatusisExclusion : 
-             // SendData(WhenErrorStatusisExclusion); break;
-			  Serial.println("WhenErrorStatusisExclusion  ");
-			  break;
-          case BillAcceptorEnableStatus : 
-             // SendData(BillAcceptorEnableStatus); break;    
-			  Serial.println("BillAcceptorEnableStatus  ");
-			  break;          
-          case BillAcceptorInhibitStatus : // imperment
-              flagBillAcceptor = true ; break;
-      }
+	   switch(Status){
+			  case MotorFailure :				ErrorMachineRecive = MotorFailure;  break;
+			  case CheckSumError :				ErrorMachineRecive = CheckSumError; break;             
+			  case BillJam :					ErrorMachineRecive = BillJam;   break;
+			  case BillRemove :					ErrorMachineRecive = BillRemove;  break;
+			  case StackerOpen :				ErrorMachineRecive = StackerOpen;  break;          
+			  case SensorProblem :				ErrorMachineRecive = SensorProblem;  break;
+			  case CommunicationFailure :		ErrorMachineRecive = CommunicationFailure; break;
+			  case BillFish :					ErrorMachineRecive = BillFish;  break;          
+			  case StackerProblem :				ErrorMachineRecive = StackerProblem;	  break;
+			  case BillReject :					ErrorMachineRecive = BillReject;  break;
+			  case InvalideCommand :			ErrorMachineRecive = InvalideCommand;  break;             
+			  case Revserved :					ErrorMachineRecive = Revserved; break;
+			  case WhenErrorStatusisExclusion : ErrorMachineRecive = WhenErrorStatusisExclusion; break;
+			  case BillAcceptorEnableStatus :   ErrorMachineRecive = BillAcceptorEnableStatus; break;          
+			  case BillAcceptorInhibitStatus :  flagBillAcceptor = true ; break;
+			  default:ErrorMachineRecive = NOERROR;break;
+		  }
    }else{
-   //timeout
+     //==========time out of checkerror=================//
+		ErrorMachineRecive = 0xFD;
    } 
+    PacketToRasberryReciveBill(ErrorMachineRecive,7);
    
   
 }
 void CheckValueBill(byte data)
 {
     switch(data){
-        case TwentyBath : 
-        //SendData(TwentyBath); break;
-		Serial.println("TwentyBath  "); break;
-        case FiftyBath : 
-        //SendData(FiftyBath); break;
-		Serial.println("FiftyBath  "); break;
-        case OnehundredBath : 
-        //SendData(OnehundredBath); break;
-		Serial.println("OnehundredBath  "); break;
-        case FivehundredBath : 
-        //SendData(FivehundredBath); break;
-		Serial.println("FivehundredBath  ");break;
-        case OnethousandBath : 
-        // SendData(OnethousandBath); break;
-		Serial.println("OnethousandBath  ");break;
+        case TwentyBath :		ValueBill = TwentyBath ; break;
+        case FiftyBath :		ValueBill = FiftyBath ; break;
+        case OnehundredBath :	ValueBill = OnehundredBath ; break;
+        case FivehundredBath :	ValueBill = FivehundredBath ; break;
+        case OnethousandBath :	ValueBill = OnethousandBath ; break;
     }
+	PacketToRasberryReciveBill(ValueBill,7);
 }
-void OpenReciveBill()
+void EnableReciveBill()
 {
-	SendData(ControllerEnableBillAcceptor);
+	SendDataToMachine(ControllerEnableBillAcceptor);
 }
 void DisnableReciveBill()
 {
-	SendData(ControllerDisableBillAcc);
+	SendDataToMachine(ControllerDisableBillAcc);
 }
-void SendToRasberry()
+
+void PacketToRasberryReciveBill(byte status,byte lengthR)
 {
-  //packet to rasbrary pi
+	CheckSumToRasberry01 = 0x00;
+	for (int i=0;i<lengthR;i++)
+	{
+		if (i==4)
+		{
+			DataToRasberry01[i] = status;
+		}
+		if (i==6)
+		{
+			DataToRasberry01[i] = CheckSumToRasberry01;
+		}
+		CheckSumToRasberry01 ^= DataToRasberry01[i];
+	}
+	SendDataToRassberry(DataToRasberry01,7);//================send error to rasberry pi=====================//
 }

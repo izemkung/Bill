@@ -18,6 +18,10 @@ extern "C" void __cxa_pure_virtual() {;}
 
 //
 //
+void CalcRxDataMain();
+void SendToRasberry(byte *data,byte lengthR);
+void LoopCheckStatus();
+void ClearBufferMain();
 void InitBillPay(void);
 void SendDataPayBill(byte *data,byte lengthb);
 void Paybill(int num);
@@ -34,15 +38,16 @@ int8_t WaitCommandCoin(byte *expected_answer,byte l ,unsigned int timeout);
 void CheckStatusCoin();
 void InitBillRecive(void);
 void ReciveBill(void);
-void SendData(byte data);
+void SendDataToMachine(byte data);
+void SendDataToRassberry(byte *data,byte lengthR);
 void CalcRxData();
 int8_t WaitCommand(byte *expected_answer, unsigned int timeout);
 boolean ByteArrayCompare(byte a[],byte b[],int array_size);
 void CheckStatusReciveBill();
 void CheckValueBill(byte data);
-void OpenReciveBill();
+void EnableReciveBill();
 void DisnableReciveBill();
-void SendToRasberry();
+void PacketToRasberryReciveBill(byte status,byte lengthR);
 
 #include "C:\Program Files (x86)\Arduino\hardware\arduino\variants\mega\pins_arduino.h" 
 #include "C:\Program Files (x86)\Arduino\hardware\arduino\cores\arduino\arduino.h"
