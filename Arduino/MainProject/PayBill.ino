@@ -1,5 +1,8 @@
-//#include <SoftwareSerial.h>
-
+#include <SoftwareSerial.h>
+//===============NUMBER OF MACHINE===========//
+#define RECIVEMACHINE  01
+#define PAYBILLMACHINE 02
+#define PAYCOINMACHINE 03
 //=============CommandStatus[4]===============//
 #define PayBill           0x10
 #define Request           0x11
@@ -36,6 +39,7 @@
 
 
 //====================Command===========================//
+byte SenddataToRasberry02[7] = {0xFF,0xFF,0x04,0x02,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
 byte CheckPayBill[6] = {0x01,0x10,0x00,0x11,0x00,0x22};
 byte PayBillReset[6] =       {0x01,0x10,0x00,0x12,0x00,0x23};
 byte Datapay[6] =            {0x01,0x10,0x00,0x10,0x01,0x22};
@@ -63,7 +67,7 @@ void SendDataPayBill(byte *data,byte lengthb)
 {
     for(int i=0; i<lengthb;i++){
      payBill.write((char)data[i]);
-	 Serial.write((char)data[i]);	 
+	 //Serial.write((char)data[i]);	 
     }
 }
 

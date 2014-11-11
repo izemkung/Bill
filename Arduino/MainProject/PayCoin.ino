@@ -1,5 +1,8 @@
 //#include <SoftwareSerial.h>
-
+//===============NUMBER OF MACHINE===========//
+#define RECIVEMACHINE  01
+#define PAYBILLMACHINE 02
+#define PAYCOINMACHINE 03
 
 //==========Status Coin========================//
 #define STATUS_NO_ERROR            0x00
@@ -11,6 +14,7 @@
 
 #define Coin Serial2
 //===================Command Control============//
+byte SenddataToRasberry03[7] = {0xFF,0xFF,0x04,0x03,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
 byte ResetC[8] = {0xED,0x08,0x00,0x50,0x00,0x00,0x00,0xB2};
 byte Inquire[8] = {0xED,0x08,0x00,0x51,0x00,0x00,0x00,0x00};
 byte Data_Pay_Coin[8] = {0xED,0x08,0x01,0x50,0x00,0x01,0x00,0x00};

@@ -15,8 +15,7 @@
     <AssemblyName>MainProject</AssemblyName>
     <Name>MainProject</Name>
     <RootNamespace>MainProject</RootNamespace>
-    <ToolchainFlavour>
-    </ToolchainFlavour>
+    <ToolchainFlavour>Native</ToolchainFlavour>
     <KeepTimersRunning>true</KeepTimersRunning>
     <OverrideVtor>false</OverrideVtor>
     <OverrideVtorValue>
