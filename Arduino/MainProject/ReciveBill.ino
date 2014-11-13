@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+
 //===============NUMBER OF MACHINE===========//
 #define RECIVEMACHINE  01
 #define PAYBILLMACHINE 02
@@ -77,16 +77,23 @@ void ReciveBill(void)
 { 
 	
   if(flagBillAcceptor == false)return;
+  byte flagOK;
+  flagOK =  CheckStatusReciveBill();
+  if (flagOK == NOERROR)
+  {
+	EnableReciveBill();//================================== enable machin recive bill===========================//  
+  }else{
+	  PacketToRasberryReciveBill(flagOK,7);return;
+  }
+  	  
   
-  EnableReciveBill();//================================== enable machin recive bill===========================//
   byte billType = 0xFF;    
   if(WaitCommand(&billType,20000)) //==================== wait 20sec for frecive bill=====================//
    {
     //imp
      if(billType == BillOk)
     {
-           CheckValueBill(billType);
-	   CheckStatusReciveBill();	  
+        PacketToRasberryReciveBill(CheckValueBill(billType),7);	  
     }   
    }else{
    //timeout
@@ -108,7 +115,7 @@ void SendDataToMachine(byte data)
 {
   Bill.write((char)data);
 }
-void SendDataToRassberry(byte *data,byte lengthR)
+void SendDataToRassberry01(byte *data,byte lengthR)
 {
 	for (int i=0;i<lengthR;i++)
 	{
@@ -170,11 +177,11 @@ boolean ByteArrayCompare(byte a[],byte b[],int array_size)
    return(true);
 }
 
-void CheckStatusReciveBill()
+byte CheckStatusReciveBill()
 {
   SendDataToMachine(RequestBillStatus);
   byte Status = 0xFF;
-  if(WaitCommand(&Status,1000))
+  if(WaitCommand(&Status,2000))
    {
 	   switch(Status){
 			  case MotorFailure :				ErrorMachineRecive = MotorFailure;  break;
@@ -198,11 +205,11 @@ void CheckStatusReciveBill()
      //==========time out of checkerror=================//
 		ErrorMachineRecive = 0xFD;
    } 
-    PacketToRasberryReciveBill(ErrorMachineRecive,7);
-   
+   // PacketToRasberryReciveBill(ErrorMachineRecive,7);
+   return ErrorMachineRecive;
   
 }
-void CheckValueBill(byte data)
+byte CheckValueBill(byte data)
 {
     switch(data)
     {
@@ -212,7 +219,8 @@ void CheckValueBill(byte data)
         case FivehundredBath :	ValueBill = FivehundredBath ; break;
         case OnethousandBath :	ValueBill = OnethousandBath ; break;
     }
-	PacketToRasberryReciveBill(ValueBill,7);
+	//PacketToRasberryReciveBill(ValueBill,7);
+	return ValueBill;
 }
 void EnableReciveBill()
 {
@@ -238,5 +246,5 @@ void PacketToRasberryReciveBill(byte status,byte lengthR)
 		}
 		CheckSumToRasberry01 ^= DataToRasberry01[i];
 	}
-	SendDataToRassberry(DataToRasberry01,7);//================send error to rasberry pi=====================//
+	SendDataToRassberry01(DataToRasberry01,7);//================send error to rasberry pi=====================//
 }

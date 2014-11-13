@@ -1,3 +1,4 @@
+#include <SoftwareSerial.h>
 //===============NUMBER OF MACHINE===========//
 #define RECIVEMACHINE  01
 #define PAYBILLMACHINE 02
@@ -36,6 +37,7 @@ byte _rxState = 0;
 byte _byte_count;
 byte _id;
 byte _checksum;
+byte state;
 //========================================
 
 //=================Get status ==================== 
@@ -207,6 +209,11 @@ void LoopCheckStatus()
 	 if(currentMillis - previousMillisReciveBill >= interval) {
 		 previousMillisReciveBill = currentMillis;
 		 // ===========make check status ReciveBill ==================== 
+		 byte statusRecive =  CheckStatusReciveBill();
+		 if (statusRecive!=NOERROR)
+		 {
+			 
+		 }
 	 }
 
          if(currentMillis - previousMillisPayBill >= interval + 2000) {

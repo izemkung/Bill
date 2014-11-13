@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+
 //===============NUMBER OF MACHINE===========//
 #define RECIVEMACHINE  01
 #define PAYBILLMACHINE 02
@@ -35,17 +35,22 @@
 #define Eight  0x08
 #define Nine   0x09
 
+//===============ERROR OF MACHINE===========//
+#define NOERRORPAYBILL		0xFE
+#define TIMEOUTPAYBILL		0xFD
 #define payBill Serial3
 
 
 //====================Command===========================//
-byte SenddataToRasberry02[7] = {0xFF,0xFF,0x04,0x02,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
+byte DataToRasberry02[7] = {0xFF,0xFF,0x04,0x02,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
+byte CheckSumToRasberry02;
 byte CheckPayBill[6] = {0x01,0x10,0x00,0x11,0x00,0x22};
 byte PayBillReset[6] =       {0x01,0x10,0x00,0x12,0x00,0x23};
 byte Datapay[6] =            {0x01,0x10,0x00,0x10,0x01,0x22};
 byte pay[6];
 byte error[6];
 
+byte errorMachinePayBill;
 
 int array_size = 6;
 byte Checksum ;
@@ -88,16 +93,12 @@ void Paybill(int num)
     byte error = 0xFF;
     if (numPacketBill > 5)
     {
-		for(int i=0; i<6;i++){
-			//payBill.write((char)data[i]);
-			 Serial.write((char)returnBill[i]);			
-		}	
+		error = returnBill[3];
+		PacketToRasberryPayBill(CheckStatus(error),7);
 	}else{
-	   //ตอบกลับไม่มีการตอบสนอง
-	    Serial.println("Paybill Time Out");
-		//CheckStatusPayBill();
+		PacketToRasberryPayBill(TIMEOUTPAYBILL,7);		
     }
-	
+	//CheckStatus(error);	
    
 }
 void CheckStatusPayBill()
@@ -108,15 +109,11 @@ void CheckStatusPayBill()
   byte error1 = 0xFF;
   if (numPacketBill > 5)
   {
-	  for(int i=0; i<6;i++){
-		  //payBill.write((char)data[i]);
-		  Serial.write((char)returnBill[i]);		  
-	  }
 	  error1 = returnBill[3];
-	  CheckStatus(error1);
+	
   }else{
 	  //ตอบกลับไม่มีการตอบสนอง
-	   Serial.println("CheckStatusPayBill Time Out ");
+	 
   }
 }
 int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
@@ -145,41 +142,46 @@ void ResetPayBill()
 {
 	SendDataPayBill(PayBillReset,6);
 }
-void CheckStatus(byte data)
+byte CheckStatus(byte data)
 {
   switch(data)
   {
-    case PayOutSuccessful :
-    Serial.println("PayOutSuccessful");break;
-    case PayOutFail :
-      Serial.println("PayOutFail");break;
-    case StatusFine : //ready paybill
-     Serial.println("StatusFine");break;
-    case EmptyNote :
-      Serial.println("EmptyNote");break;
-    case StockLess :
-     Serial.println("StockLess");break;
-    case NoteJam : 
-     Serial.println("NoteJam");break;
-    case OverLength :
-    Serial.println("OverLength");break;
-    case NoteNotExit :
-    Serial.println("NoteNotExit");break;
-    case SensorError :
-    Serial.println("SensorError");break;
-    case DoubleNoteError :
-     Serial.println("DoubleNoteError");break;
-    case MotorError :
-     Serial.println("MotorError");break;
-    case DispensingBusy :
-     Serial.println("DispensingBusy");break;
-    case SensorAdjusting :
-     Serial.println("SensorAdjusting");break;
-    case CheckSumError : 
-     Serial.println("CheckSumError");break;
-    case LowPowerError :
-     Serial.println("LowPowerError");break;
+    case PayOutSuccessful :		errorMachinePayBill = PayOutSuccessful;break;
+    case PayOutFail :			errorMachinePayBill = PayOutFail;break;
+    case StatusFine :			errorMachinePayBill = StatusFine;break;
+    case EmptyNote :			errorMachinePayBill = EmptyNote;break;
+    case StockLess :			errorMachinePayBill = StockLess;break;
+    case NoteJam :				errorMachinePayBill = NoteJam;break;
+    case OverLength :			errorMachinePayBill = OverLength;break;
+    case NoteNotExit :			errorMachinePayBill = NoteNotExit;break;
+    case SensorError :			errorMachinePayBill = SensorError;break;
+    case DoubleNoteError :		errorMachinePayBill = DoubleNoteError;break;
+    case MotorError :			errorMachinePayBill = MotorError;break;
+    case DispensingBusy :		errorMachinePayBill = DispensingBusy;break;;
+    case SensorAdjusting :		errorMachinePayBill = SensorAdjusting;break;
+    case CheckSumError :		errorMachinePayBill = CheckSumError;break;
+    case LowPowerError :		errorMachinePayBill = LowPowerError;break;
+	default:errorMachinePayBill=NOERRORPAYBILL;break;
   }
+  //PacketToRasberryPayBill(errorMachinePayBill,7);
+  return errorMachinePayBill;
 }
 
+void PacketToRasberryPayBill(byte status,byte lengthR)
+{
+	CheckSumToRasberry02 = 0x00;
+	for (int i=0;i<lengthR;i++)
+	{
+		if (i==4)
+		{
+			DataToRasberry02[i] = status;
+		}
+		if (i==6)
+		{
+			DataToRasberry02[i] = CheckSumToRasberry02;
+		}
+		CheckSumToRasberry02 ^= DataToRasberry02[i];
+	}
+	SendDataToRassberry01(DataToRasberry02,7);//================send error to rasberry pi=====================//
+}
 

@@ -18,17 +18,20 @@ extern "C" void __cxa_pure_virtual() {;}
 
 //
 //
-void CalcRxDataMain();
+void CalcCommandFromRaspberryPi();
+void serialEvent();
+void Rx_Calc();
+byte checkSum(byte _start,byte _stop);
 void SendToRasberry(byte *data,byte lengthR);
 void LoopCheckStatus();
-void ClearBufferMain();
 void InitBillPay(void);
 void SendDataPayBill(byte *data,byte lengthb);
 void Paybill(int num);
 void CheckStatusPayBill();
 int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout);
 void ResetPayBill();
-void CheckStatus(byte data);
+byte CheckStatus(byte data);
+void PacketToRasberryPayBill(byte status,byte lengthR);
 void InitCoinPay(void);
 void SendDataCoin(byte *data,byte lengths);
 void PayCoin(int num);
@@ -39,12 +42,12 @@ void CheckStatusCoin();
 void InitBillRecive(void);
 void ReciveBill(void);
 void SendDataToMachine(byte data);
-void SendDataToRassberry(byte *data,byte lengthR);
+void SendDataToRassberry01(byte *data,byte lengthR);
 void CalcRxData();
 int8_t WaitCommand(byte *expected_answer, unsigned int timeout);
 boolean ByteArrayCompare(byte a[],byte b[],int array_size);
-void CheckStatusReciveBill();
-void CheckValueBill(byte data);
+byte CheckStatusReciveBill();
+byte CheckValueBill(byte data);
 void EnableReciveBill();
 void DisnableReciveBill();
 void PacketToRasberryReciveBill(byte status,byte lengthR);

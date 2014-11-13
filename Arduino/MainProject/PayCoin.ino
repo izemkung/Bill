@@ -1,4 +1,4 @@
-//#include <SoftwareSerial.h>
+
 //===============NUMBER OF MACHINE===========//
 #define RECIVEMACHINE  01
 #define PAYBILLMACHINE 02
