@@ -11,11 +11,14 @@
 #define STATUS_EMPTYCOIN           0x28
 #define STATUS_PAYCOIN_ERROR       0x29
 
-
+#define NOERRORPAYCOINE	 0xFE
+#define TIMEOUTPAYCOIN	 0xFD
 #define Coin Serial2
 //===================Command Control============//
 byte DataToRasberry03[7] = {0xFF,0xFF,0x04,0x03,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
 byte CheckSumToRasberry03;
+byte errorMachinePayCoin;
+byte dataerror[2];
 byte ResetC[8] = {0xED,0x08,0x00,0x50,0x00,0x00,0x00,0xB2};
 byte Inquire[8] = {0xED,0x08,0x00,0x51,0x00,0x00,0x00,0x00};
 byte Data_Pay_Coin[8] = {0xED,0x08,0x01,0x50,0x00,0x01,0x00,0x00};
@@ -84,7 +87,7 @@ void PayCoin(int num)
 	}
 	if (error1==STATUS_NOCOIN_NOTFINISH || error1 == STATUS_PAYCOIN_ERROR )
 	{
-		CheckStatusCoin();
+		
 	}
   //Send STATUS_NO_ERROR
 }
@@ -140,40 +143,34 @@ void CheckStatusCoin()
 	{	
 		error1 = returnCoin[3];
 		error2 = returnCoin[5];
-		for (int i =0;i<numPacket;i++)
+		switch(error1)
 		{
-			Serial.write((char)returnCoin[i]);	
+			case STATUS_LOWCOIN :errorMachinePayCoin = STATUS_LOWCOIN ;break;
+			case STATUS_EMPTYCOIN :errorMachinePayCoin = STATUS_EMPTYCOIN ;break;
+			case STATUS_PAYCOIN_ERROR :errorMachinePayCoin = STATUS_PAYCOIN_ERROR ;break;	
+			default:errorMachinePayCoin = NOERRORPAYCOINE ;break;			
 		}
-		
-	
-		//Serial.println("CheckStatusCoin  ");
-// 		switch(error1)
-// 		{
-// 			case STATUS_LOWCOIN :
-// 			Serial.println("STATUS_LOWCOIN  ");break;
-// 			case STATUS_EMPTYCOIN :
-// 			Serial.println("STATUS_EMPTYCOIN  ");
-// 			Serial.write((char)error2);break;
-// 			case STATUS_PAYCOIN_ERROR :
-// 			Serial.println("STATUS_PAYCOIN_ERROR ");break;	
-// 			default:Serial.println("NO_ERROR ");break;			
-// 		}
 	}else{
 		//ตอบกลับไม่มีการตอบสนอง
-		//Serial.println("CheckStatusCoin timeout"); 
+		errorMachinePayCoin = TIMEOUTPAYCOIN;
 	}
-	//send to rasberrry pi
+	//PacketToRasberryPayCoin(errorMachinePayCoin,error2,7);
 }
-void PacketToRasberryPayCoin(byte status,byte lengthR)
+
+void PacketToRasberryPayCoin(byte status,byte _value,byte lengthR)
 {
 	CheckSumToRasberry03 = 0x00;
 	for (int i=0;i<lengthR;i++)
 	{
-		if (i==4)
+		if (i==3)
 		{
 			DataToRasberry03[i] = status;
 		}
-		if (i==6)
+		if (i==5)
+		{
+			DataToRasberry03[i] = _value;
+		}
+		if (i==7)
 		{
 			DataToRasberry03[i] = CheckSumToRasberry03;
 		}

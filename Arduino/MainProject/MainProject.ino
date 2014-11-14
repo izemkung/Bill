@@ -219,7 +219,7 @@ void LoopCheckStatus()
          if(currentMillis - previousMillisPayBill >= interval + 2000) {
 		 previousMillisPayBill = currentMillis;
 		 // ===========make check status PayBill ==================== 
-
+		 
 	 }
 
          if(currentMillis - previousMillisPayCoin >= interval + 4000) {
