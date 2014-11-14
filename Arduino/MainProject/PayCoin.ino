@@ -14,7 +14,8 @@
 
 #define Coin Serial2
 //===================Command Control============//
-byte SenddataToRasberry03[7] = {0xFF,0xFF,0x04,0x03,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
+byte DataToRasberry03[7] = {0xFF,0xFF,0x04,0x03,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
+byte CheckSumToRasberry03;
 byte ResetC[8] = {0xED,0x08,0x00,0x50,0x00,0x00,0x00,0xB2};
 byte Inquire[8] = {0xED,0x08,0x00,0x51,0x00,0x00,0x00,0x00};
 byte Data_Pay_Coin[8] = {0xED,0x08,0x01,0x50,0x00,0x01,0x00,0x00};
@@ -162,4 +163,21 @@ void CheckStatusCoin()
 		//Serial.println("CheckStatusCoin timeout"); 
 	}
 	//send to rasberrry pi
+}
+void PacketToRasberryPayCoin(byte status,byte lengthR)
+{
+	CheckSumToRasberry03 = 0x00;
+	for (int i=0;i<lengthR;i++)
+	{
+		if (i==4)
+		{
+			DataToRasberry03[i] = status;
+		}
+		if (i==6)
+		{
+			DataToRasberry03[i] = CheckSumToRasberry03;
+		}
+		CheckSumToRasberry03 ^= DataToRasberry03[i];
+	}
+	SendDataToRassberry01(DataToRasberry03,7);//================send error to rasberry pi=====================//
 }

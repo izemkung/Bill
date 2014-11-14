@@ -39,6 +39,7 @@ void SendInquire();
 void ResetPayCoin();
 int8_t WaitCommandCoin(byte *expected_answer,byte l ,unsigned int timeout);
 void CheckStatusCoin();
+void PacketToRasberryPayCoin(byte status,byte lengthR);
 void InitBillRecive(void);
 void ReciveBill(void);
 void SendDataToMachine(byte data);
@@ -50,6 +51,7 @@ byte CheckStatusReciveBill();
 byte CheckValueBill(byte data);
 void EnableReciveBill();
 void DisnableReciveBill();
+void ResetMachineReciveBill();
 void PacketToRasberryReciveBill(byte status,byte lengthR);
 
 #include "C:\Program Files (x86)\Arduino\hardware\arduino\variants\mega\pins_arduino.h" 

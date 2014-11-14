@@ -8,6 +8,7 @@
 #define RejectBill       0x0F
 #define HoldBill         0x18
 #define RequestBillStatus 0x0C
+#define RESETRECIVEBILL 0x30
 //==========Command Respond==============//
 #define PowerOn          0x80
 #define Request02        0x8F
@@ -81,16 +82,16 @@ void ReciveBill(void)
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
   {
-	EnableReciveBill();//================================== enable machin recive bill===========================//  
+	//EnableReciveBill();//================================== enable machin recive bill===========================//  
+	ResetMachineReciveBill(); //=======================after reset Machine will Openrecivebill====================//
   }else{
-	  PacketToRasberryReciveBill(flagOK,7);return;
-  }
-  	  
+	  PacketToRasberryReciveBill(flagOK,7);
+  }  	  
   
   byte billType = 0xFF;    
   if(WaitCommand(&billType,20000)) //==================== wait 20sec for frecive bill=====================//
    {
-    //imp
+    //imp	
      if(billType == BillOk)
     {
         PacketToRasberryReciveBill(CheckValueBill(billType),7);	  
@@ -137,7 +138,7 @@ void CalcRxData()
           case Request02 : 
               SendDataToMachine(AcceptBill) ;break;
           //case CommunicationFailure : 
-              //SendData(AcceptBill); break;
+          //SendData(AcceptBill); break;
               
           case BillOk : // imperment
               flagBillAcceptor = true ;break;
@@ -230,7 +231,19 @@ void DisnableReciveBill()
 {
 	SendDataToMachine(ControllerDisableBillAcc);
 }
-
+void ResetMachineReciveBill()
+{
+	SendDataToMachine(RESETRECIVEBILL);
+	byte Status = 0xFF;
+	if(WaitCommand(&Status,2000))
+	{
+		if (Status==Request02)
+		{
+			SendDataToMachine(AcceptBill);
+		}
+	}
+	
+}
 void PacketToRasberryReciveBill(byte status,byte lengthR)
 {
 	CheckSumToRasberry01 = 0x00;
