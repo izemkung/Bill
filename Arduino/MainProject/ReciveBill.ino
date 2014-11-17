@@ -72,11 +72,9 @@ void InitBillRecive(void)
 void ReciveBill(void)
 { 
   ResetMachineReciveBill();
-<<<<<<< HEAD
+
   if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);return;}
-=======
- // if(flagBillAcceptor == false)return;
->>>>>>> origin/master
+
   byte flagOK;
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
@@ -244,20 +242,7 @@ void PacketToRasberryReciveBill(byte _status,byte lengthR)
         //DataToRasberry01[6] = CheckSumToRasberry01;
 	for (int i=2;i<7;i++)
 	{
-<<<<<<< HEAD
 		CheckSumToRasberry01  += DataToRasberry01[i];
-=======
-		if (i==4)
-		{
-			DataToRasberry01[i] = status;
-		}
-		if (i==6)
-		{
-			DataToRasberry01[i] = checkSumReciveBill(DataToRasberry01[2],DataToRasberry01[5]);
-		}
-		//CheckSumToRasberry01 ^= DataToRasberry01[i];
-		
->>>>>>> origin/master
 	}
 	
         DataToRasberry01[6] = ~CheckSumToRasberry01;
