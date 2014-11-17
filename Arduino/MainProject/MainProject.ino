@@ -82,18 +82,18 @@ void CalcCommandFromRaspberryPi()
   byte _id = rxBuffer[PRO_ID];
   byte _function = rxBuffer[PRO_FUNCTION]; 
   byte _value = rxBuffer[PRO_VALUE];
-  Serial.println("val");
-   Serial.write(_id);
-   Serial.write(_function);
-   Serial.write(_value);
+//   Serial.println("val");
+//    Serial.write(_id);
+//    Serial.write(_function);
+//    Serial.write(_value);
   switch(_id)
   {
-	   Serial.println("switch1");
+	  
       case P_RECIVEBILL:
-              Serial.println("P_RECIVEBILL");
+              //Serial.println("P_RECIVEBILL");
               switch(_function)
               {
-                case F_RECIVEBILL: ReciveBill();break;
+                case F_RECIVEBILL:/*CalcRxData()*/;ReciveBill();break;
                 case F_CHECKSTATUS: CheckStatusReciveBill();break;
               }
            break;

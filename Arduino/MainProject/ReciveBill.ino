@@ -78,8 +78,8 @@ void InitBillRecive(void)
 
 void ReciveBill(void)
 { 
-	
-  if(flagBillAcceptor == false)return;
+	ResetMachineReciveBill();
+  /*if(flagBillAcceptor == false)return;*/
   byte flagOK;
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
@@ -88,30 +88,35 @@ void ReciveBill(void)
 	ResetMachineReciveBill(); //=======================after reset Machine will Openrecivebill====================//
   }else{
 	  PacketToRasberryReciveBill(flagOK,7);
-  }  	  
-  
-  byte billType = 0xFF;    
-  if(WaitCommand(&billType,20000)) //==================== wait 20sec for frecive bill=====================//
+  } 
+    
+  byte billType = 0xFF;  
+  if(WaitCommand(&billType,5000)) //==================== wait 20sec for frecive bill=====================//
    {
     //imp	
-     if(billType == BillOk)
-    {
-        PacketToRasberryReciveBill(CheckValueBill(billType),7);	  
-    }   
-   }else{
-   //timeout
+		if(billType == BillOk)
+		{
+			if(WaitCommand(&billType,200))SendDataToMachine(AcceptBill);
+				PacketToRasberryReciveBill(CheckValueBill(billType),7);	
+				DisnableReciveBill();
+		}
+	}else{
+	//timeout
 	PacketToRasberryReciveBill(TIMEOUT,7);
 	DisnableReciveBill();
-   } 
-   
+	}   
+	
    //AcceptBill
-   if(billType != 0xFF)
-   {
-	CheckValueBill(billType);
-    SendDataToMachine(AcceptBill);   
-   }
-   flagBillAcceptor = false;
-   
+//    if(billType != 0xFF)
+//       {
+//    	//PacketToRasberryReciveBill(CheckValueBill(billType),7);
+//      //   SendDataToMachine(AcceptBill); 
+//    // 	Serial.println("bi");
+//    // 	Serial.write(billType);  
+//       }
+   		
+      flagBillAcceptor = false;
+      //DisnableReciveBill();
 }
 
 void SendDataToMachine(byte data)
@@ -184,7 +189,7 @@ byte CheckStatusReciveBill()
 {
   SendDataToMachine(RequestBillStatus);
   byte Status = 0xFF;
-  if(WaitCommand(&Status,2000))
+  if(WaitCommand(&Status,5000))
    {
 	   switch(Status){
 			  case MotorFailure :				ErrorMachineRecive = MotorFailure;  break;
@@ -236,8 +241,16 @@ void DisnableReciveBill()
 void ResetMachineReciveBill()
 {
 	SendDataToMachine(RESETRECIVEBILL);
-	delay(1000);
-	SendDataToMachine(AcceptBill);
+ 	delay(1000);
+ 	SendDataToMachine(AcceptBill);
+// 	byte cal =0xFF;
+// 	 if(WaitCommand(&cal,2000))
+// 	 {
+// 		 if (cal ==Request02 )
+// 		 {
+// 			 SendDataToMachine(AcceptBill);
+// 		 }
+// 	 }
 	
 }
 void PacketToRasberryReciveBill(byte status,byte lengthR)
