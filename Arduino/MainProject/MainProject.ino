@@ -30,14 +30,14 @@ byte Function;
 byte rxBuffer[RX_BUFFER_SIZE];
 byte rxWritePointer = 0;
 byte rxReadPointer = 0;
-
+byte state = 0;
 byte _indexStartReader;
 
 byte _rxState = 0;
 byte _byte_count;
 byte _id;
 byte _checksum;
-byte state;
+
 //========================================
 
 //=================Get status ==================== 
@@ -66,26 +66,30 @@ void loop()
 }
 
 
-#define P_RECIVEBILL  1
+#define P_RECIVEBILL  01
 
-#define F_RECIVEBILL  1
-#define F_CHECKSTATUS 2
+#define F_RECIVEBILL  01
+#define F_CHECKSTATUS 02
 
-#define P_PAYBILL     2
-#define F_PAYBILL     1
+#define P_PAYBILL     02
+#define F_PAYBILL     01
 
-#define P_PATCOIN     3
+#define P_PATCOIN     03
 void CalcCommandFromRaspberryPi()
 {
-  
+ 
   RESETTIMECHECKSTATUS;
   
   byte _id = rxBuffer[PRO_ID];
   byte _function = rxBuffer[PRO_FUNCTION]; 
   byte _value = rxBuffer[PRO_VALUE];
-  
+  Serial.println("val");
+   Serial.write(_id);
+   Serial.write(_function);
+   Serial.write(_value);
   switch(_id)
   {
+	   Serial.println("switch1");
       case P_RECIVEBILL:
               switch(_function)
               {
@@ -128,14 +132,15 @@ void serialEvent() {
 void Rx_Calc()
 {
     if(rxReadPointer != rxWritePointer)
-    {	
+    {
+		
     }else{
 	return;
     }
 
     byte _UDR = rxBuffer[rxReadPointer];
     INC_RING(rxReadPointer,RX_BUFFER_SIZE);
-    
+   
     switch(state)
 	{
 		case 0://star1
@@ -166,10 +171,21 @@ void Rx_Calc()
 		if(checkSum(PRO_LENGTH,PRO_CHECKSUM)== _UDR)
 		{
 			//Serial.println("check sum ok!");
-                        CalcCommandFromRaspberryPi();
+// 			Serial.write(checkSum(PRO_LENGTH,PRO_CHECKSUM));
+// 			Serial.write(_UDR);			
+            CalcCommandFromRaspberryPi();
 
 		}else
 		{
+			
+			//check sum error
+// 			Serial.write(checkSum(PRO_LENGTH,PRO_CHECKSUM));
+// 			Serial.write(_UDR);
+// 			for (int i =0;i<7;i++)
+// 			{
+// 				Serial.write(rxBuffer[i]);
+// 			}
+			//Serial.println("check sum error");
 		}
 		state = 0;
 		break;
@@ -200,7 +216,6 @@ void SendToRasberry(byte *data,byte lengthR)
 		Serial.write((char)(data[i]));
 	}	
 }
-
 
 
 void LoopCheckStatus()

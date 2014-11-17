@@ -71,7 +71,9 @@ void InitBillRecive(void)
    SendDataToMachine(AcceptBill);
    delay(1000);
    SendDataToMachine(ControllerDisableBillAcc);
-   delay(1000);
+//    delay(4000);
+//    SendDataToMachine(ControllerEnableBillAcceptor);
+//ResetMachineReciveBill();
 }
 
 void ReciveBill(void)
@@ -234,14 +236,8 @@ void DisnableReciveBill()
 void ResetMachineReciveBill()
 {
 	SendDataToMachine(RESETRECIVEBILL);
-	byte Status = 0xFF;
-	if(WaitCommand(&Status,2000))
-	{
-		if (Status==Request02)
-		{
-			SendDataToMachine(AcceptBill);
-		}
-	}
+	delay(1000);
+	SendDataToMachine(AcceptBill);
 	
 }
 void PacketToRasberryReciveBill(byte status,byte lengthR)
