@@ -35,7 +35,6 @@ byte _indexStartReader;
 
 byte _rxState = 0;
 byte _byte_count;
-byte _id;
 byte _checksum;
 
 //========================================
@@ -66,15 +65,15 @@ void loop()
 }
 
 
-#define P_RECIVEBILL  01
+#define P_RECIVEBILL  0x01
 
-#define F_RECIVEBILL  01
-#define F_CHECKSTATUS 02
+#define F_RECIVEBILL  0x01
+#define F_CHECKSTATUS 0x02
 
-#define P_PAYBILL     02
-#define F_PAYBILL     01
+#define P_PAYBILL     0x02
+#define F_PAYBILL     0x01
 
-#define P_PATCOIN     03
+#define P_PATCOIN     0x03
 void CalcCommandFromRaspberryPi()
 {
  
@@ -91,6 +90,7 @@ void CalcCommandFromRaspberryPi()
   {
 	   Serial.println("switch1");
       case P_RECIVEBILL:
+              Serial.println("P_RECIVEBILL");
               switch(_function)
               {
                 case F_RECIVEBILL: ReciveBill();break;
