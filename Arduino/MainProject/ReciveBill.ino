@@ -78,8 +78,8 @@ void InitBillRecive(void)
 
 void ReciveBill(void)
 { 
-	ResetMachineReciveBill();
-  /*if(flagBillAcceptor == false)return;*/
+  ResetMachineReciveBill();
+ // if(flagBillAcceptor == false)return;
   byte flagOK;
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
@@ -264,9 +264,19 @@ void PacketToRasberryReciveBill(byte status,byte lengthR)
 		}
 		if (i==6)
 		{
-			DataToRasberry01[i] = CheckSumToRasberry01;
+			DataToRasberry01[i] = checkSumReciveBill(DataToRasberry01[2],DataToRasberry01[5]);
 		}
-		CheckSumToRasberry01 ^= DataToRasberry01[i];
+		//CheckSumToRasberry01 ^= DataToRasberry01[i];
+		
 	}
 	SendDataToRassberry01(DataToRasberry01,7);//================send error to rasberry pi=====================//
+}
+byte checkSumReciveBill(byte _start,byte _stop)
+{
+	byte check_Sum = 0;
+	for(;_start != _stop;  _start++)
+	{
+		check_Sum  += DataToRasberry01[_start];
+	}
+	return ~check_Sum;
 }

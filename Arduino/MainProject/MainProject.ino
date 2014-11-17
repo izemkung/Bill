@@ -93,7 +93,7 @@ void CalcCommandFromRaspberryPi()
               //Serial.println("P_RECIVEBILL");
               switch(_function)
               {
-                case F_RECIVEBILL:/*CalcRxData()*/;ReciveBill();break;
+                case F_RECIVEBILL: /*CalcRxData()*/;ReciveBill();break;  //====command send from rasberry pi (FF FF 04 01 01 00 F9)
                 case F_CHECKSTATUS: CheckStatusReciveBill();break;
               }
            break;
