@@ -62,6 +62,9 @@ void loop()
 {
   Rx_Calc();//Calc packet from raspberry pi
   LoopCheckStatus();//Check status   
+  
+  CalcRxDataBillRecive();
+  
 }
 
 
@@ -69,11 +72,14 @@ void loop()
 
 #define F_RECIVEBILL  0x01
 #define F_CHECKSTATUS 0x02
+#define F_RESET       0x03
+#define F_ACCEPT      0x04
 
 #define P_PAYBILL     0x02
 #define F_PAYBILL     0x01
 
-#define P_PATCOIN     0x03
+#define P_PAYCOIN     0x03
+#define F_PAYCOIN     0x03
 void CalcCommandFromRaspberryPi()
 {
  
@@ -93,8 +99,10 @@ void CalcCommandFromRaspberryPi()
               //Serial.println("P_RECIVEBILL");
               switch(_function)
               {
-                case F_RECIVEBILL:/*CalcRxData()*/;ReciveBill();break;
-                case F_CHECKSTATUS: CheckStatusReciveBill();break;
+                case F_RECIVEBILL:ReciveBill();break;
+                //case F_CHECKSTATUS: CheckStatusReciveBill();break;
+                case F_RESET: ResetMachineReciveBill();break;
+                case F_ACCEPT:SendDataToMachine(0x02);break;
               }
            break;
            
@@ -102,15 +110,17 @@ void CalcCommandFromRaspberryPi()
               switch(_function)
               {
                 case F_RECIVEBILL: Paybill(_value);break;
-                case F_CHECKSTATUS: CheckStatusPayBill();break;
+                //case F_CHECKSTATUS: CheckStatusPayBill();break;
+                //case F_RESET: break;
               }
            break;
       
-      case P_PATCOIN:
+      case P_PAYCOIN:
               switch(_function)
               {
-                case P_PATCOIN: PayCoin(_value);break;
-                case F_CHECKSTATUS: CheckStatusCoin();break;
+                case F_PAYCOIN: PayCoin(_value);break;
+                //case F_CHECKSTATUS: CheckStatusCoin();break;
+                //case F_RESET: break;
               }
       break; 
   }
@@ -173,7 +183,7 @@ void Rx_Calc()
 			//Serial.println("check sum ok!");
 // 			Serial.write(checkSum(PRO_LENGTH,PRO_CHECKSUM));
 // 			Serial.write(_UDR);			
-            CalcCommandFromRaspberryPi();
+                     CalcCommandFromRaspberryPi();
 
 		}else
 		{

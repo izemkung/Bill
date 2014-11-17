@@ -67,56 +67,44 @@ boolean flagBillAcceptor = false;
 void InitBillRecive(void)
 {
   Bill.begin(9600,SERIAL_8E1);  
-  delay(2000);
-   SendDataToMachine(AcceptBill);
-   delay(1000);
-   SendDataToMachine(ControllerDisableBillAcc);
-//    delay(4000);
-//    SendDataToMachine(ControllerEnableBillAcceptor);
-//ResetMachineReciveBill();
 }
 
 void ReciveBill(void)
 { 
-	ResetMachineReciveBill();
-  /*if(flagBillAcceptor == false)return;*/
+  ResetMachineReciveBill();
+  if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);return;}
   byte flagOK;
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
   {
-	//EnableReciveBill();//================================== enable machin recive bill===========================//  
-	ResetMachineReciveBill(); //=======================after reset Machine will Openrecivebill====================//
+	EnableReciveBill();
+	//ResetMachineReciveBill(); 
   }else{
 	  PacketToRasberryReciveBill(flagOK,7);
+          return;
   } 
     
   byte billType = 0xFF;  
-  if(WaitCommand(&billType,5000)) //==================== wait 20sec for frecive bill=====================//
-   {
-    //imp	
-		if(billType == BillOk)
-		{
-			if(WaitCommand(&billType,200))SendDataToMachine(AcceptBill);
-				PacketToRasberryReciveBill(CheckValueBill(billType),7);	
-				DisnableReciveBill();
-		}
-	}else{
-	//timeout
-	PacketToRasberryReciveBill(TIMEOUT,7);
-	DisnableReciveBill();
-	}   
-	
-   //AcceptBill
-//    if(billType != 0xFF)
-//       {
-//    	//PacketToRasberryReciveBill(CheckValueBill(billType),7);
-//      //   SendDataToMachine(AcceptBill); 
-//    // 	Serial.println("bi");
-//    // 	Serial.write(billType);  
-//       }
-   		
-      flagBillAcceptor = false;
-      //DisnableReciveBill();
+  if(WaitCommand(&billType,30000)) //wait 20sec 
+   {	
+	if(billType == BillOk)
+	{
+	  if(WaitCommand(&billType,2000))
+          {
+             PacketToRasberryReciveBill(CheckValueBill(billType),7);
+             SendDataToMachine(AcceptBill);
+             //if raspberry accept  
+          }else{
+            PacketToRasberryReciveBill(TIMEOUT,7);//timeout
+          }			
+	}
+   }else{
+      PacketToRasberryReciveBill(TIMEOUT,7);//timeout
+   }   
+   DisnableReciveBill();	
+   	
+   //flagBillAcceptor = false;
+   
 }
 
 void SendDataToMachine(byte data)
@@ -130,7 +118,7 @@ void SendDataToRassberry01(byte *data,byte lengthR)
 		Serial.write((char)data[i]);
 	}
 }
-void CalcRxData()
+void CalcRxDataBillRecive()
 {  
   while(Bill.available())
   {    
@@ -148,7 +136,9 @@ void CalcRxData()
           //SendData(AcceptBill); break;
               
           case BillOk : // imperment
-              flagBillAcceptor = true ;break;
+              flagBillAcceptor = true ;
+              SendDataToMachine(ControllerDisableBillAcc);
+              break;
 			  
   }
 }
@@ -240,33 +230,19 @@ void DisnableReciveBill()
 }
 void ResetMachineReciveBill()
 {
-	SendDataToMachine(RESETRECIVEBILL);
- 	delay(1000);
- 	SendDataToMachine(AcceptBill);
-// 	byte cal =0xFF;
-// 	 if(WaitCommand(&cal,2000))
-// 	 {
-// 		 if (cal ==Request02 )
-// 		 {
-// 			 SendDataToMachine(AcceptBill);
-// 		 }
-// 	 }
-	
+        flagBillAcceptor = false;
+	SendDataToMachine(RESETRECIVEBILL);	
 }
-void PacketToRasberryReciveBill(byte status,byte lengthR)
+void PacketToRasberryReciveBill(byte _status,byte lengthR)
 {
 	CheckSumToRasberry01 = 0x00;
-	for (int i=0;i<lengthR;i++)
+        DataToRasberry01[4] = _status;
+        //DataToRasberry01[6] = CheckSumToRasberry01;
+	for (int i=2;i<7;i++)
 	{
-		if (i==4)
-		{
-			DataToRasberry01[i] = status;
-		}
-		if (i==6)
-		{
-			DataToRasberry01[i] = CheckSumToRasberry01;
-		}
-		CheckSumToRasberry01 ^= DataToRasberry01[i];
+		CheckSumToRasberry01  += DataToRasberry01[i];
 	}
-	SendDataToRassberry01(DataToRasberry01,7);//================send error to rasberry pi=====================//
+	
+        DataToRasberry01[6] = ~CheckSumToRasberry01;
+	SendDataToRassberry01(DataToRasberry01,7);
 }

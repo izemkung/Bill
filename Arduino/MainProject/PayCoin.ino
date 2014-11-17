@@ -39,6 +39,7 @@ void InitCoinPay(void)
   Coin.begin(9600); 
   //Serial.begin(9600);
 }
+
 void SendDataCoin(byte *data,byte lengths)
 {
   for(int i =0;i<lengths;i++){
@@ -48,12 +49,13 @@ void SendDataCoin(byte *data,byte lengths)
 }
 void PayCoin(int num)
 {
-	CheckSumCoin=0x00;//clearvalue CheckSum
+  
+  CheckSumCoin=0x00;//clearvalue CheckSum
   for(int i =0;i<8;i++){
    Pay_Coin[i] = Data_Pay_Coin[i];   
    if(i==2)
    {
-     Pay_Coin[i]=Sn;
+     Pay_Coin[i]=Sn++;
    }
    if(i==5)
     {
@@ -66,8 +68,10 @@ void PayCoin(int num)
 	CheckSumCoin^=Pay_Coin[i];   
   }
   SendDataCoin(Pay_Coin,8);
-  if(Sn++>255)
-    Sn=1;  
+  
+  if(Sn==255)
+    Sn=0;  
+    
   byte returnCoin[10];
   byte numPacket = WaitCommandCoin(returnCoin,8,5000);
   byte error1 = 0xFF;byte error2 =0xFF;
@@ -78,8 +82,9 @@ void PayCoin(int num)
 		Serial.write((char)returnCoin[i]);
 	   }
 	}else{
-		//µÍº¡ÅÑºäÁèÁÕ¡ÒÃµÍºÊ¹Í§  
-		CheckStatusCoin(); 
+		//ï¿½Íºï¿½ï¿½Ñºï¿½ï¿½ï¿½ï¿½Õ¡ï¿½ÃµÍºÊ¹Í§  
+                byte error[2];
+		CheckStatusCoin(error); 
 	}
 	if (error1 == STATUS_EMPTYCOIN)
 	{
@@ -133,17 +138,17 @@ int8_t WaitCommandCoin(byte *expected_answer,byte l ,unsigned int timeout)
 
 	return lengthb;
 }
-void CheckStatusCoin()
+void CheckStatusCoin(byte *error)
 {	
 	SendInquire();
 	byte returnCoin[10];
 	byte numPacket = WaitCommandCoin(returnCoin,8,5000); 
-	byte error1 = 0xFF;byte error2 =0xFF;
+	error[0] = 0xFF;error[1] =0xFF;
 	if (numPacket > 5)
 	{	
-		error1 = returnCoin[3];
-		error2 = returnCoin[5];
-		switch(error1)
+		error[0] = returnCoin[3];
+		error[1] = returnCoin[5];
+		switch(error[0])
 		{
 			case STATUS_LOWCOIN :errorMachinePayCoin = STATUS_LOWCOIN ;break;
 			case STATUS_EMPTYCOIN :errorMachinePayCoin = STATUS_EMPTYCOIN ;break;
@@ -151,30 +156,24 @@ void CheckStatusCoin()
 			default:errorMachinePayCoin = NOERRORPAYCOINE ;break;			
 		}
 	}else{
-		//µÍº¡ÅÑºäÁèÁÕ¡ÒÃµÍºÊ¹Í§
+		//ï¿½Íºï¿½ï¿½Ñºï¿½ï¿½ï¿½ï¿½Õ¡ï¿½ÃµÍºÊ¹Í§
 		errorMachinePayCoin = TIMEOUTPAYCOIN;
 	}
 	//PacketToRasberryPayCoin(errorMachinePayCoin,error2,7);
 }
 
-void PacketToRasberryPayCoin(byte status,byte _value,byte lengthR)
+void PacketToRasberryPayCoin(byte _status,byte _value,byte lengthR)
 {
 	CheckSumToRasberry03 = 0x00;
-	for (int i=0;i<lengthR;i++)
+        DataToRasberry03[4] = _status;
+        DataToRasberry03[5] = _value;
+        //DataToRasberry03[6] = CheckSumToRasberry01;
+        
+	for (int i=2;i<7;i++)
 	{
-		if (i==3)
-		{
-			DataToRasberry03[i] = status;
-		}
-		if (i==5)
-		{
-			DataToRasberry03[i] = _value;
-		}
-		if (i==7)
-		{
-			DataToRasberry03[i] = CheckSumToRasberry03;
-		}
-		CheckSumToRasberry03 ^= DataToRasberry03[i];
+		CheckSumToRasberry03  += DataToRasberry03[i];
 	}
+	
+        DataToRasberry03[6] = ~CheckSumToRasberry03;
 	SendDataToRassberry01(DataToRasberry03,7);//================send error to rasberry pi=====================//
 }

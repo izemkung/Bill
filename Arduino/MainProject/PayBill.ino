@@ -68,6 +68,7 @@ void InitBillPay(void)
 {
   payBill.begin(9600,SERIAL_8E1); 
 }
+
 void SendDataPayBill(byte *data,byte lengthb)
 {
     for(int i=0; i<lengthb;i++){
@@ -112,7 +113,7 @@ void CheckStatusPayBill()
 	  error1 = returnBill[3];
 	
   }else{
-	  //µÍº¡ÅÑºäÁèÁÕ¡ÒÃµÍºÊ¹Í§
+	  //ï¿½Íºï¿½ï¿½Ñºï¿½ï¿½ï¿½ï¿½Õ¡ï¿½ÃµÍºÊ¹Í§
 	 
   }
 }
@@ -167,21 +168,17 @@ byte CheckStatus(byte data)
   return errorMachinePayBill;
 }
 
-void PacketToRasberryPayBill(byte status,byte lengthR)
+void PacketToRasberryPayBill(byte _status,byte lengthR)
 {
 	CheckSumToRasberry02 = 0x00;
-	for (int i=0;i<lengthR;i++)
+        DataToRasberry02[4] = _status;
+        
+	for (int i=2;i<7;i++)
 	{
-		if (i==4)
-		{
-			DataToRasberry02[i] = status;
-		}
-		if (i==6)
-		{
-			DataToRasberry02[i] = CheckSumToRasberry02;
-		}
-		CheckSumToRasberry02 ^= DataToRasberry02[i];
+		CheckSumToRasberry02  += DataToRasberry02[i];
 	}
-	SendDataToRassberry01(DataToRasberry02,7);//================send error to rasberry pi=====================//
+	
+        DataToRasberry02[6] = ~CheckSumToRasberry02;
+	SendDataToRassberry01(DataToRasberry02,7);
 }
 
