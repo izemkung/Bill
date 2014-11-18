@@ -73,8 +73,9 @@ void ReciveBill(void)
 { 
   ResetMachineReciveBill();
 
-  if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);return;}
-
+  if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);Serial.println("flagfalse");return;}
+	
+	Serial.println("flagtrue");
   byte flagOK;
   flagOK =  CheckStatusReciveBill();
   if (flagOK == NOERROR)
@@ -87,7 +88,7 @@ void ReciveBill(void)
   } 
     
   byte billType = 0xFF;  
-  if(WaitCommand(&billType,30000)) //wait 20sec 
+  if(WaitCommand(&billType,30000)) //wait 30sec 
    {	
 	if(billType == BillOk)
 	{
@@ -132,10 +133,10 @@ void CalcRxDataBillRecive()
   byte data = bufferRx[indexRead++];
   
   switch(data){
-          case Request02 : 
-              SendDataToMachine(AcceptBill) ;break;
-          //case CommunicationFailure : 
-          //SendData(AcceptBill); break;
+          case Request02 : 				
+              SendDataToMachine(AcceptBill) ; flagBillAcceptor = true ;break;
+//           case CommunicationFailure : 
+//           SendDataToMachine(AcceptBill); break;
               
           case BillOk : // imperment
               flagBillAcceptor = true ;

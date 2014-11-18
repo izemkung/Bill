@@ -60,10 +60,11 @@ void setup()
 
 void loop() 
 {
+  CalcRxDataBillRecive();
   Rx_Calc();//Calc packet from raspberry pi
   LoopCheckStatus();//Check status   
   
-  CalcRxDataBillRecive();
+ 
   
 }
 
