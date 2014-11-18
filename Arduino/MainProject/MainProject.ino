@@ -1,4 +1,4 @@
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
 //===============NUMBER OF MACHINE===========//
 #define RECIVEMACHINE  01
 #define PAYBILLMACHINE 02
@@ -55,7 +55,7 @@ void setup()
   InitBillPay();
   InitCoinPay();
   Serial.begin(9600);
-  
+  //PayCoin(1);
 }
 
 void loop() 
@@ -80,7 +80,7 @@ void loop()
 #define F_PAYBILL     0x01
 
 #define P_PAYCOIN     0x03
-#define F_PAYCOIN     0x03
+#define F_PAYCOIN     0x01
 void CalcCommandFromRaspberryPi()
 {
  
@@ -111,8 +111,8 @@ void CalcCommandFromRaspberryPi()
       case P_PAYBILL:
               switch(_function)
               {
-                case F_RECIVEBILL: Paybill(_value);break;
-                //case F_CHECKSTATUS: CheckStatusPayBill();break;
+                case F_RECIVEBILL: Paybill(_value);break;       //paybill FF FF 04 02 01 01 F7 paybill 1 bill 
+                //case F_CHECKSTATUS: CheckStatusPayBill();break; 
                 //case F_RESET: break;
               }
            break;

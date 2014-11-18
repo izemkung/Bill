@@ -71,39 +71,58 @@ void InitBillRecive(void)
 
 void ReciveBill(void)
 { 
-  ResetMachineReciveBill();
+  //ResetMachineReciveBill();
 
-  if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);Serial.println("flagfalse");return;}
+  //if(flagBillAcceptor == false){PacketToRasberryReciveBill(TIMEOUT,7);Serial.println("flagfalse");return;}
 	
-	Serial.println("flagtrue");
+	//Serial.println("flagtrue");
+  EnableReciveBill();
+  //delay(500);
+  
   byte flagOK;
+  
   flagOK =  CheckStatusReciveBill();
-  if (flagOK == NOERROR)
+  if (flagOK == BillAcceptorEnableStatus)
   {
-	EnableReciveBill();
+	//EnableReciveBill();
 	//ResetMachineReciveBill(); 
   }else{
 	  PacketToRasberryReciveBill(flagOK,7);
-          return;
+	  DisnableReciveBill();	
+      return;
   } 
-    
-  byte billType = 0xFF;  
+   
+  byte billType = 0xFF;
+ 
   if(WaitCommand(&billType,30000)) //wait 30sec 
    {	
-	if(billType == BillOk)
+	if(billType == BillOk)//if 0x81 judre Bill ok
 	{
-	  if(WaitCommand(&billType,2000))
+	  if(WaitCommand(&billType,2000))//wait bill type
           {
-             PacketToRasberryReciveBill(CheckValueBill(billType),7);
-             SendDataToMachine(AcceptBill);
+			 char _billType = billType;
+			 SendDataToMachine(AcceptBill);
+			 
+			 if(WaitCommand(&billType,2000))
+			 {
+				if(billType == 0x10)//Stacking
+					PacketToRasberryReciveBill(CheckValueBill(_billType),7);
+				else
+					PacketToRasberryReciveBill(0x11,7);//reject
+			 }
              //if raspberry accept  
           }else{
-            PacketToRasberryReciveBill(TIMEOUT,7);//timeout
+            PacketToRasberryReciveBill(TIMEOUT,7);//
           }			
+	}else{
+		 PacketToRasberryReciveBill(billType,7);//no bill type
 	}
+	
    }else{
-      PacketToRasberryReciveBill(TIMEOUT,7);//timeout
-   }   
+      PacketToRasberryReciveBill(TIMEOUT,7);//no judge bill
+   }  
+   
+   delay(500); 
    DisnableReciveBill();	
    	
    //flagBillAcceptor = false;
@@ -131,16 +150,20 @@ void CalcRxDataBillRecive()
   if(indexRx == indexRead)return;
   int numData = indexRx - indexRead;
   byte data = bufferRx[indexRead++];
+  //Serial.write(0xff);
+  //Serial.write(data);
+  
   
   switch(data){
           case Request02 : 				
-              SendDataToMachine(AcceptBill) ; flagBillAcceptor = true ;break;
+              SendDataToMachine(AcceptBill) ;
+			  delay(2000);
+              SendDataToMachine(ControllerDisableBillAcc);break;
 //           case CommunicationFailure : 
 //           SendDataToMachine(AcceptBill); break;
               
           case BillOk : // imperment
-              flagBillAcceptor = true ;
-              SendDataToMachine(ControllerDisableBillAcc);
+              
               break;
 			  
   }
@@ -160,10 +183,16 @@ int8_t WaitCommand(byte *expected_answer, unsigned int timeout)
 
     // this loop waits for the answer
     do{
-        if(Bill.available() != 0){    
-            expected_answer[x] = Bill.read();
-            x++;           
-            answer = 1;
+        if(Bill.available() != 0){  
+			expected_answer[x] = Bill.read();
+			 //Serial.write(0xfe);
+			 //Serial.write(expected_answer[x]);
+			if (expected_answer[x] != 0x00)
+			{
+				x++;
+				answer = 1;
+			}
+            
         }
     }while((answer == 0) && ((millis() - previous) < timeout));   
 
@@ -199,7 +228,7 @@ byte CheckStatusReciveBill()
 			  case Revserved :					ErrorMachineRecive = Revserved; break;
 			  case WhenErrorStatusisExclusion : ErrorMachineRecive = WhenErrorStatusisExclusion; break;
 			  case BillAcceptorEnableStatus :   ErrorMachineRecive = BillAcceptorEnableStatus; break;          
-			  case BillAcceptorInhibitStatus :  flagBillAcceptor = true ; break;
+			  case BillAcceptorInhibitStatus :   ; break;
 			  default:ErrorMachineRecive = NOERROR;break;
 		  }
    }else{
