@@ -36,8 +36,8 @@
 #define Nine   0x09
 
 //===============ERROR OF MACHINE===========//
-#define NOERRORPAYBILL		0xFE
-#define TIMEOUTPAYBILL		0xFD
+#define NOERROR		0xFE
+#define TIMEOUT		0xFD
 #define payBill Serial3
 
 
@@ -95,11 +95,19 @@ void Paybill(int num)
     if (numPacketBill > 5)
     {
 		error = returnBill[3];
-		PacketToRasberryPayBill(CheckStatus(error),7);
-	}else{
-		PacketToRasberryPayBill(TIMEOUTPAYBILL,7);		
+		if (error == PayOutFail )// cannot pay out 
+		{
+			ResetPayBill();
+			return;
+		}else{
+			PacketToRasberryPayBill(CheckStatus(error),7);
+		}
+		
+	}else{// time out for command		
+			delay(1000);
+			CheckStatusPayBill();
+			ResetPayBill();			
     }
-	//CheckStatus(error);	
    
 }
 void CheckStatusPayBill()
@@ -111,7 +119,7 @@ void CheckStatusPayBill()
   if (numPacketBill > 5)
   {
 	  error1 = returnBill[3];
-	
+	  PacketToRasberryPayBill(CheckStatus(error1),7);
   }else{
 	  //�ͺ��Ѻ����ա�õͺʹͧ
 	 
@@ -162,7 +170,7 @@ byte CheckStatus(byte data)
     case SensorAdjusting :		errorMachinePayBill = SensorAdjusting;break;
     case CheckSumError :		errorMachinePayBill = CheckSumError;break;
     case LowPowerError :		errorMachinePayBill = LowPowerError;break;
-	default:errorMachinePayBill=NOERRORPAYBILL;break;
+	default:errorMachinePayBill=NOERROR;break;
   }
   //PacketToRasberryPayBill(errorMachinePayBill,7);
   return errorMachinePayBill;

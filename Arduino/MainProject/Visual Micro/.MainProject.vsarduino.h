@@ -39,7 +39,7 @@ void SendInquire();
 void ResetPayCoin();
 int8_t WaitCommandCoin(byte *expected_answer,byte l ,unsigned int timeout);
 void CheckStatusCoin(byte *error);
-void PacketToRasberryPayCoin(byte _status,byte _value,byte lengthR);
+void PacketToRasberryPayCoin(byte _status,byte _value);
 void InitBillRecive(void);
 void ReciveBill(void);
 void SendDataToMachine(byte data);
