@@ -91,7 +91,7 @@ void PayCoin(int num)
   error[0] = error[1] =0xFF;
   if (numPacket > 5)//Packet Rx `0k `6 byte
   {
-	  error[0] = returnCoin[3];
+	   error[0] = returnCoin[3];
 	   Serial.write(error[0]);
 	   Serial.write(error[1]);
 	   if(error[0] == 0x00)//noerror

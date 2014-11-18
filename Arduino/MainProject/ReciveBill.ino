@@ -270,7 +270,7 @@ void PacketToRasberryReciveBill(byte _status,byte lengthR)
 	CheckSumToRasberry01 = 0x00;
         DataToRasberry01[4] = _status;
         //DataToRasberry01[6] = CheckSumToRasberry01;
-	for (int i=2;i<7;i++)
+	for (int i=2;i<6;i++)
 	{
 		CheckSumToRasberry01  += DataToRasberry01[i];
 	}

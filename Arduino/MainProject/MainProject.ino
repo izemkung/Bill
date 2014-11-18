@@ -100,7 +100,7 @@ void CalcCommandFromRaspberryPi()
               //Serial.println("P_RECIVEBILL");
               switch(_function)
               {
-                case F_RECIVEBILL:ReciveBill();break;
+                case F_RECIVEBILL:ReciveBill();break;				// recive bill FF FF 04 01 01 00 F9 
                 //case F_CHECKSTATUS: CheckStatusReciveBill();break;
                 case F_RESET: ResetMachineReciveBill();break;
                 case F_ACCEPT:SendDataToMachine(0x02);break;
@@ -111,7 +111,7 @@ void CalcCommandFromRaspberryPi()
       case P_PAYBILL:
               switch(_function)
               {
-                case F_RECIVEBILL: Paybill(_value);break;       //paybill FF FF 04 02 01 01 F7 paybill 1 bill 
+                case F_RECIVEBILL: Paybill(_value);break;			//paybill FF FF 04 02 01 01 F7 paybill 1 bill 
                 //case F_CHECKSTATUS: CheckStatusPayBill();break; 
                 //case F_RESET: break;
               }
@@ -120,7 +120,7 @@ void CalcCommandFromRaspberryPi()
       case P_PAYCOIN:
               switch(_function)
               {
-                case F_PAYCOIN: PayCoin(_value);break;
+                case F_PAYCOIN: PayCoin(_value);break;				//payCoin FF FF 04 03 01 01 F6 payCoin 1 coin 
                 //case F_CHECKSTATUS: CheckStatusCoin();break;
                 //case F_RESET: break;
               }
