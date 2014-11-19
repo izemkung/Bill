@@ -38,6 +38,7 @@
 //===============ERROR OF MACHINE===========//
 #define NOERROR		0xFE
 #define TIMEOUT		0xFD
+#define OK			0xFC
 #define payBill Serial3
 
 
@@ -95,18 +96,13 @@ void Paybill(int num)
     if (numPacketBill > 5)
     {
 		error = returnBill[3];
-		if (error == PayOutFail )// cannot pay out 
-		{
-			ResetPayBill();
-			return;
-		}else{
-			PacketToRasberryPayBill(CheckStatus(error),7);
-		}
+		PacketToRasberryPayBill(CheckStatus(error),7);	
 		
 	}else{// time out for command		
-			delay(1000);
-			CheckStatusPayBill();
-			ResetPayBill();			
+			//delay(1000);
+			PacketToRasberryPayBill(TIMEOUT,7);
+// 			CheckStatusPayBill();
+// 			ResetPayBill();			
     }
    
 }
@@ -150,6 +146,7 @@ int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
 void ResetPayBill()
 {
 	SendDataPayBill(PayBillReset,6);
+	PacketToRasberryPayBill(OK,7);
 }
 byte CheckStatus(byte data)
 {

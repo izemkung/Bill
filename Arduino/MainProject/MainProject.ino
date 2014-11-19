@@ -112,8 +112,8 @@ void CalcCommandFromRaspberryPi()
               switch(_function)
               {
                 case F_RECIVEBILL: Paybill(_value);break;			//paybill FF FF 04 02 01 01 F7 paybill 1 bill 
-                //case F_CHECKSTATUS: CheckStatusPayBill();break; 
-                //case F_RESET: break;
+                case F_CHECKSTATUS: CheckStatusPayBill();break;		//checkpaybill FF FF 04 02 02 00 F7 
+                case F_RESET: ResetPayBill();break;					//resetpaybill FF FF 04 02 03 00 F6
               }
            break;
       
@@ -121,8 +121,8 @@ void CalcCommandFromRaspberryPi()
               switch(_function)
               {
                 case F_PAYCOIN: PayCoin(_value);break;				//payCoin FF FF 04 03 01 01 F6 payCoin 1 coin 
-                //case F_CHECKSTATUS: CheckStatusCoin();break;
-                //case F_RESET: break;
+                case F_CHECKSTATUS: CheckStatusCoinFromrasberriPi();break;		//checkstatuspaycoin FF FF 03 02 00 F6 
+                case F_RESET: ResetPayCoin(); break;				
               }
       break; 
   }

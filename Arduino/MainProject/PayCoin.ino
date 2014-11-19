@@ -13,6 +13,7 @@
 
 #define NOERROR		0xFE
 #define TIMEOUT		0xFD
+#define OK			0xFC
 #define Coin Serial2
 //===================Command Control============//
 byte DataToRasberry03[7] = {0xFF,0xFF,0x04,0x03,0x00,0x00,0x00}; //===(start1,start2,length,machine,error.status,value,checksum)===//
@@ -54,6 +55,7 @@ void PayCoin(int num)
   //Serial.write(num);
   
   byte error[2];
+  
   error[0] = error[1] =0xFF;
 //   CheckStatusCoin(error);
 //   if(error[0] != 0x00)
@@ -72,47 +74,51 @@ void PayCoin(int num)
   
   for(int i =0;i<7;i++){
    //Pay_Coin[i] = Data_Pay_Coin[i];   
-   CheckSumCoin^=Data_Pay_Coin[i];   
+   CheckSumCoin^=Data_Pay_Coin[i]; 
+    
   }
+  //Serial.write(CheckSumCoin); 
   Data_Pay_Coin[7] = CheckSumCoin;
   SendDataCoin(Data_Pay_Coin,8);
   
-  Serial.write(num);
+ // Serial.write(num);
   
   if(Sn==255) Sn=0;  
     
   byte returnCoin[10];
   byte numPacket = WaitCommandCoin(returnCoin,6,5000);
  
-  Serial.write(0x11);
-  Serial.write(numPacket);
-
+//   Serial.write(0x11);
+//   Serial.write(numPacket);
   
   error[0] = error[1] =0xFF;
   if (numPacket > 5)//Packet Rx `0k `6 byte
   {
 	   error[0] = returnCoin[3];
-	   Serial.write(error[0]);
-	   Serial.write(error[1]);
+// 	   Serial.write(error[0]);
+// 	   Serial.write(error[1]);
 	   if(error[0] == 0x00)//noerror
 	   {
-			PacketToRasberryPayCoin(NOERROR,returnCoin[4]);
-			return;
+			//Serial.write( Data_Pay_Coin[5]);
+			//Serial.write( returnCoin[5]);
+			PacketToRasberryPayCoin(OK,returnCoin[4]);return;
+			// delay(1000);
+			 //CheckStatusCoin(error);
+// 			 Serial.write(0xAA);
+ 			//  Serial.write(error[1]);
+			 //if(error[1] == num)
+			 //{
+			//	 PacketToRasberryPayCoin(1,2);
+			//	 return;
+			// }			  
+	   }	  
+	   if (error[0]== 0x01)// error01
+	   {
+		   PacketToRasberryPayCoin(TIMEOUT,4);return; // timeout error 01
 	   }
+	  
   }
-  if (error[0]== 0x01)// error01
-  {
-	  PacketToRasberryPayCoin(TIMEOUT,4);return; // error 01
-  }
-   
-    delay(1000);
-	CheckStatusCoin(error);
-	if(error[0] == TIMEOUT)
-	{
-		PacketToRasberryPayCoin(TIMEOUT,5);
-		return;
-	}
-        PacketToRasberryPayCoin(error[0],error[1]);
+  PacketToRasberryPayCoin(TIMEOUT,5); // time out command
 	
 }
 void SendInquire()
@@ -134,6 +140,7 @@ void SendInquire()
 void ResetPayCoin()
 {
 	SendDataCoin(ResetC,8);
+	PacketToRasberryPayCoin(OK,0xFF);
 }
 int8_t WaitCommandCoin(byte *expected_answer,byte l ,unsigned int timeout)
 {
@@ -167,21 +174,26 @@ void CheckStatusCoin(byte *error)
 	{	
 		error[0] = returnCoin[3];
 		error[1] = returnCoin[5];
-		//if(error[0]  == 0x00) error[0] = NOERROR;
-		/*switch(error[0])
-		{
-			case STATUS_LOWCOIN :errorMachinePayCoin = STATUS_LOWCOIN ;break;
-			case STATUS_EMPTYCOIN :errorMachinePayCoin = STATUS_EMPTYCOIN ;break;
-			case STATUS_PAYCOIN_ERROR :errorMachinePayCoin = STATUS_PAYCOIN_ERROR ;break;	
-			default:error[0] = NOERROR;break;			
-		}*/
-	}else{
-		//�ͺ��Ѻ����ա�õͺʹͧ
+	}else{		
 		error[0] = TIMEOUT;
 	}
-	//PacketToRasberryPayCoin(errorMachinePayCoin,error2,7);
 }
-
+void CheckStatusCoinFromrasberriPi(/*byte *error*/)
+{
+	SendInquire();
+	byte returnCoin[10];
+	byte numPacket = WaitCommandCoin(returnCoin,8,5000);
+	error[0] = 0xFF;error[1] =0xFF;
+	if (numPacket > 5)
+	{
+		error[0] = returnCoin[3];
+		error[1] = returnCoin[5];
+		}else{
+		error[0] = TIMEOUT;
+		PacketToRasberryPayCoin(TIMEOUT,5);
+	}
+	PacketToRasberryPayCoin(error[0],error[1]);
+}
 void PacketToRasberryPayCoin(byte _status,byte _value)
 {
 	CheckSumToRasberry03 = 0x00;
