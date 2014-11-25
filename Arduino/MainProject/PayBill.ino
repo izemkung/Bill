@@ -80,31 +80,43 @@ void SendDataPayBill(byte *data,byte lengthb)
 
 void Paybill(int num) 
 {
+	byte st = CheckStatusPayBillIN(); 
+	if ( (st != StatusFine) || (st != StockLess) )
+	{
+		SendDataPayBill(PayBillReset,6);
+		delay(1000);
+	}
 	Checksum = 0x00;
-   for(int i =0;i<6;i++){
-     pay[i] = Datapay[i];	    
-     if(i==4)
-       pay[i]=num;     
-	 if(i==5)     
-       pay[i] = Checksum; 
-     Checksum ^= pay[i];
-   }
-    SendDataPayBill(pay,6);   
-    byte returnBill[10];
-    byte numPacketBill = WaitCommandBill(returnBill,6,5000);
-    byte error = 0xFF;
-    if (numPacketBill > 5)
-    {
+	for(int i =0;i<6;i++){
+		pay[i] = Datapay[i];
+		if(i==4)
+		pay[i]=num;
+		if(i==5)
+		pay[i] = Checksum;
+		Checksum ^= pay[i];
+	}
+	SendDataPayBill(pay,6);
+	byte returnBill[10];
+	byte numPacketBill = WaitCommandBill(returnBill,6,5000);
+	byte error = 0xFF;
+	if (numPacketBill > 5)
+	{
 		error = returnBill[3];
-		PacketToRasberryPayBill(CheckStatus(error),7);	
+		//PacketToRasberryPayBill(CheckStatus(error),7);
+		if (error==PayOutSuccessful) // pay OK
+		{
+			PacketToRasberryPayBill(OK,1,7);return;
+			}else{ // pay not OK return error
+			PacketToRasberryPayBill(CheckStatus(error),2,7);return;
+		}
 		
-	}else{// time out for command		
-			//delay(1000);
-			PacketToRasberryPayBill(TIMEOUT,7);
-// 			CheckStatusPayBill();
-// 			ResetPayBill();			
-    }
-   
+	}else{// time out for command
+		//delay(1000);
+		PacketToRasberryPayBill(TIMEOUT,3,7);return;
+		// 			CheckStatusPayBill();
+		// 			ResetPayBill();
+	}
+
 }
 void CheckStatusPayBill()
 {
@@ -115,11 +127,27 @@ void CheckStatusPayBill()
   if (numPacketBill > 5)
   {
 	  error1 = returnBill[3];
-	  PacketToRasberryPayBill(CheckStatus(error1),7);
+	  PacketToRasberryPayBill(CheckStatus(error1),5,7);
   }else{
 	  //�ͺ��Ѻ����ա�õͺʹͧ
 	 
   }
+}
+byte CheckStatusPayBillIN()
+{
+	SendDataPayBill(CheckPayBill,6);
+	byte returnBill[10];
+	byte numPacketBill = WaitCommandBill(returnBill,6,5000);
+	byte error1 = 0xFF;
+	if (numPacketBill > 5)
+	{
+		error1 = returnBill[3];
+		//CheckStatus(error1);
+		}else{
+		//�ͺ��Ѻ����ա�õͺʹͧ
+		
+	}
+	return error1;
 }
 int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
 {
@@ -146,7 +174,7 @@ int8_t WaitCommandBill(byte *expected_answer,byte l ,unsigned int timeout)
 void ResetPayBill()
 {
 	SendDataPayBill(PayBillReset,6);
-	PacketToRasberryPayBill(OK,7);
+	PacketToRasberryPayBill(OK,4,7);
 }
 byte CheckStatus(byte data)
 {
@@ -173,12 +201,13 @@ byte CheckStatus(byte data)
   return errorMachinePayBill;
 }
 
-void PacketToRasberryPayBill(byte _status,byte lengthR)
+void PacketToRasberryPayBill(byte _status,byte _value,byte lengthR)
 {
 	CheckSumToRasberry02 = 0x00;
         DataToRasberry02[4] = _status;
+		DataToRasberry02[5] = _value;
         
-	for (int i=2;i<7;i++)
+	for (int i=2;i<6;i++)
 	{
 		CheckSumToRasberry02  += DataToRasberry02[i];
 	}

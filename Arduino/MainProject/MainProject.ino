@@ -120,9 +120,9 @@ void CalcCommandFromRaspberryPi()
       case P_PAYCOIN:
               switch(_function)
               {
-                case F_PAYCOIN: PayCoin(_value);break;				//payCoin FF FF 04 03 01 01 F6 payCoin 1 coin 
+                case F_PAYCOIN: /*PayCoin(_value)*/ testPay(_value);break;				//payCoin FF FF 04 03 01 01 F6 payCoin 1 coin 
                 case F_CHECKSTATUS: CheckStatusCoinFromrasberriPi();break;		//checkstatuspaycoin FF FF 03 02 00 F6 
-                case F_RESET: ResetPayCoin(); break;				
+                case F_RESET: ResetPayCoin(); break;				//reset coin FF FF 04 03 03 00 F5
               }
       break; 
   }
